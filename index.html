@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="手寫統一發票稅額計算機：5% 營業稅四捨五入、銷售額與總計互算、新臺幣中文大寫。" />
+    <title>發票稅額計算機</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="desk">
+      <header class="masthead">
+        <div class="masthead__brand">
+          <span class="seal" aria-hidden="true">票</span>
+          <div>
+            <h1>發票稅額計算機</h1>
+            <p class="lede">手寫統一發票用 · 營業稅 5% · 四捨五入至元</p>
+          </div>
+        </div>
+        <div class="masthead__actions">
+          <button type="button" class="btn btn--ghost" id="btn-buyer" aria-expanded="false" aria-controls="buyer-panel">
+            插入統編
+          </button>
+          <button type="button" class="btn btn--ghost" id="btn-print">列印</button>
+          <button type="button" class="btn btn--danger" id="btn-clear">清除重填</button>
+        </div>
+      </header>
+
+      <p class="hint" id="source-hint">先填「總計」＝含稅；先填「銷售額合計」＝未稅。明細有數字時，銷售額改由金額加總。</p>
+
+      <article class="slip" id="slip">
+        <div class="slip__top">
+          <div class="slip__title-block">
+            <p class="slip__kicker">填票草稿</p>
+            <h2 class="slip__title">統一發票</h2>
+          </div>
+          <div class="period">
+            <label class="period__label" for="roc-year">發票期別</label>
+            <div class="period__controls">
+              <span class="period__roc">民國</span>
+              <input id="roc-year" class="period__year" type="text" inputmode="numeric" maxlength="3" autocomplete="off" />
+              <span>年</span>
+              <select id="period-months" class="period__months"></select>
+              <span>份</span>
+            </div>
+            <p class="period__display" id="period-display"></p>
+          </div>
+        </div>
+
+        <div class="buyer" id="buyer-panel" hidden>
+          <label for="buyer-tax-id">買受人統一編號</label>
+          <input
+            id="buyer-tax-id"
+            type="text"
+            inputmode="numeric"
+            maxlength="8"
+            autocomplete="off"
+            placeholder="8 位數字"
+            spellcheck="false"
+          />
+          <p class="field-note" id="buyer-error" hidden>請輸入 8 位數字統編。</p>
+        </div>
+
+        <fieldset class="tax-type">
+          <legend>營業稅</legend>
+          <label class="tick">
+            <input type="checkbox" name="tax-type" value="taxable" checked />
+            <span class="tick__box" aria-hidden="true"></span>
+            應稅
+          </label>
+          <label class="tick">
+            <input type="checkbox" name="tax-type" value="zero" />
+            <span class="tick__box" aria-hidden="true"></span>
+            零稅率
+          </label>
+          <label class="tick">
+            <input type="checkbox" name="tax-type" value="exempt" />
+            <span class="tick__box" aria-hidden="true"></span>
+            免稅
+          </label>
+        </fieldset>
+
+        <div class="table-wrap">
+          <table class="items">
+            <thead>
+              <tr>
+                <th class="col-name">品名</th>
+                <th class="col-qty">數量</th>
+                <th class="col-unit">單價</th>
+                <th class="col-amt">金額</th>
+                <th class="col-note">備註</th>
+              </tr>
+            </thead>
+            <tbody id="item-rows"></tbody>
+          </table>
+        </div>
+
+        <div class="slip__bottom">
+          <div class="totals">
+            <div class="total-row">
+              <label for="sales">銷售額合計</label>
+              <input id="sales" class="money" type="text" inputmode="numeric" autocomplete="off" />
+            </div>
+            <div class="total-row total-row--tax">
+              <span>營業稅</span>
+              <output id="tax" for="sales total">—</output>
+            </div>
+            <div class="total-row total-row--grand">
+              <label for="total">總計</label>
+              <input id="total" class="money" type="text" inputmode="numeric" autocomplete="off" />
+            </div>
+          </div>
+
+          <aside class="chop" aria-label="發票章位置">
+            <p>營業人蓋用</p>
+            <p>統一發票專用章</p>
+            <span class="chop__ring">章</span>
+          </aside>
+        </div>
+
+        <section class="capital" aria-label="總計新臺幣中文大寫">
+          <h3>總計新臺幣（中文大寫）</h3>
+          <ol class="capital__boxes" id="capital-boxes"></ol>
+          <p class="capital__phrase" id="capital-phrase"></p>
+        </section>
+      </article>
+
+      <aside class="notes">
+        <h2>怎麼填</h2>
+        <ul>
+          <li>客戶給的是<strong>含稅</strong>金額：先填「總計」，銷售額與營業稅會依 總計 × 5 ÷ 105 四捨五入算出。</li>
+          <li>報價是<strong>未稅</strong>：先填「銷售額合計」，營業稅＝銷售額 × 5% 四捨五入，總計＝銷售額＋稅。</li>
+          <li>明細列有數量／單價／金額時，銷售額改為各列金額加總，再依上方稅別計算總計。</li>
+          <li>應稅、零稅率、免稅應分開開立；零稅率與免稅的營業稅為 0，總計等於銷售額。</li>
+        </ul>
+        <p class="disclaimer">僅供參考，請自行核對。本工具不構成稅務意見，亦不代替財政部申報資料。</p>
+      </aside>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
