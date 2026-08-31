@@ -7,14 +7,11 @@ import {
   openLookup,
   resetInvoiceState,
   setAmountFrom,
-  setBuyer,
-  setDate,
   setLookupQuery,
   setLookupStatus,
-  setPeriod,
   setTaxType,
 } from './invoice-state.js';
-import { formatPeriod, periodOptions } from './period.js';
+import { formatPeriod } from './period.js';
 import { parseTwd } from './tax.js';
 import './style.css';
 
@@ -32,17 +29,14 @@ const LOOKUP_MESSAGES = {
   'invalid-checksum': '統一編號檢查碼不正確，請重新確認。',
   'not-found': '財政部公開資料查無此統一編號。',
   timeout: '查詢逾時，請再試一次。',
-  error: '目前無法連線官方查詢服務，請改為手動填寫名稱與統編。',
+  error: '目前無法連線官方查詢服務，請稍後再試。',
 };
 
 const els = {
   hint: document.querySelector('#source-hint'),
   invoice: document.querySelector('#invoice'),
   periodDisplay: document.querySelector('#period-display'),
-  rocYear: document.querySelector('#roc-year'),
-  periodMonths: document.querySelector('#period-months'),
   buyerName: document.querySelector('#buyer-name'),
-  buyerTaxId: document.querySelector('#buyer-tax-id'),
   taxIdBoxes: document.querySelector('#tax-id-boxes'),
   dateYear: document.querySelector('#date-year'),
   dateMonth: document.querySelector('#date-month'),
@@ -98,21 +92,16 @@ function render() {
 
 function renderPeriod() {
   els.periodDisplay.textContent = formatPeriod(state.period.rocYear, state.period.startMonth);
-  if (document.activeElement !== els.rocYear) {
-    els.rocYear.value = String(state.period.rocYear);
-  }
-  els.periodMonths.value = String(state.period.startMonth);
 }
 
 function renderDate() {
-  if (document.activeElement !== els.dateYear) els.dateYear.value = String(state.date.rocYear);
-  if (document.activeElement !== els.dateMonth) els.dateMonth.value = String(state.date.month);
-  if (document.activeElement !== els.dateDay) els.dateDay.value = String(state.date.day);
+  els.dateYear.textContent = String(state.date.rocYear);
+  els.dateMonth.textContent = String(state.date.month);
+  els.dateDay.textContent = String(state.date.day);
 }
 
 function renderBuyer() {
-  if (document.activeElement !== els.buyerName) els.buyerName.value = state.buyer.name;
-  if (document.activeElement !== els.buyerTaxId) els.buyerTaxId.value = state.buyer.taxId;
+  els.buyerName.value = state.buyer.name;
   const digits = state.buyer.taxId.padEnd(8).slice(0, 8);
   els.taxIdBoxes.replaceChildren(
     ...[...digits].map((ch) => {
@@ -279,52 +268,8 @@ function closeLookupDialog() {
   lookupTrigger?.focus();
 }
 
-function buildPeriodOptions() {
-  els.periodMonths.replaceChildren(
-    ...periodOptions().map((opt) => {
-      const option = document.createElement('option');
-      option.value = String(opt.start);
-      option.textContent = opt.label;
-      return option;
-    }),
-  );
-}
-
 function init() {
-  buildPeriodOptions();
   render();
-
-  els.rocYear.addEventListener('input', () => {
-    const rocYear = parseTwd(digitsOnly(els.rocYear.value, 3));
-    if (rocYear === null) return;
-    setState(setPeriod(state, { rocYear }));
-  });
-  els.periodMonths.addEventListener('change', () => {
-    setState(setPeriod(state, { startMonth: Number(els.periodMonths.value) }));
-  });
-
-  els.dateYear.addEventListener('input', () => {
-    const rocYear = parseTwd(digitsOnly(els.dateYear.value, 3));
-    if (rocYear === null) return;
-    setState(setDate(state, { rocYear }));
-  });
-  els.dateMonth.addEventListener('input', () => {
-    const month = parseTwd(digitsOnly(els.dateMonth.value, 2));
-    if (month === null || month < 1 || month > 12) return;
-    setState(setDate(state, { month }));
-  });
-  els.dateDay.addEventListener('input', () => {
-    const day = parseTwd(digitsOnly(els.dateDay.value, 2));
-    if (day === null || day < 1 || day > 31) return;
-    setState(setDate(state, { day }));
-  });
-
-  els.buyerName.addEventListener('input', () => {
-    setState(setBuyer(state, { name: els.buyerName.value }));
-  });
-  els.buyerTaxId.addEventListener('input', () => {
-    setState(setBuyer(state, { taxId: digitsOnly(els.buyerTaxId.value, 8) }));
-  });
 
   els.salesInput.addEventListener('input', () => {
     els.salesInput.value = digitsOnly(els.salesInput.value, 15);

@@ -168,18 +168,12 @@ h1 {
   font-size: 1.05rem;
 }
 
-.period-edit,
 .invoice-date,
 .buyer-line,
 .lookup-row {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-}
-
-.period-edit {
-  justify-content: center;
-  font-size: 0.85rem;
 }
 
 .buyer-meta {
@@ -191,7 +185,7 @@ h1 {
   margin-bottom: 0.35rem;
 }
 
-.buyer-line label {
+.buyer-line > span:first-child {
   flex: 0 0 5.2rem;
   letter-spacing: 0.28em;
 }
@@ -202,9 +196,10 @@ h1 {
   gap: 0.6rem 1rem;
 }
 
-#buyer-name {
+.buyer-name {
   flex: 1;
   min-width: 12rem;
+  min-height: 1.4em;
   border: 0;
   border-bottom: 1px solid var(--rule);
   background: transparent;
@@ -214,18 +209,9 @@ h1 {
 }
 
 .tax-id {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 0.35rem;
-}
-
-.tax-id__input {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: calc(8 * 1.45rem);
-  opacity: 0;
-  font: inherit;
 }
 
 .tax-id__boxes {
@@ -235,7 +221,6 @@ h1 {
   margin: 0;
   padding: 0;
   border: 1px solid var(--rule);
-  pointer-events: none;
 }
 
 .tax-id__boxes li {
@@ -269,8 +254,7 @@ h1 {
 }
 
 .num,
-.money,
-select {
+.money {
   font: inherit;
   color: inherit;
   background: transparent;
@@ -278,6 +262,7 @@ select {
 }
 
 .num {
+  display: inline-block;
   text-align: center;
   padding: 0.05rem 0.15rem;
 }
@@ -527,7 +512,6 @@ dialog::backdrop {
 }
 
 input:focus,
-select:focus,
 .money:focus,
 .tax-mark:focus-visible {
   outline: 2px solid var(--focus);

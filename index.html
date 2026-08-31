@@ -42,50 +42,28 @@
               <span class="invoice-title__kind">（三聯式）</span>
             </div>
             <p class="invoice-period" id="period-display"></p>
-            <div class="period-edit">
-              <label class="sr-only" for="roc-year">發票期別民國年</label>
-              <span>民國</span>
-              <input id="roc-year" class="num" type="text" inputmode="numeric" maxlength="3" autocomplete="off" />
-              <span>年</span>
-              <label class="sr-only" for="period-months">發票期別月份</label>
-              <select id="period-months"></select>
-              <span>份</span>
-            </div>
           </header>
 
           <div class="buyer-meta">
             <div class="buyer-line">
-              <label for="buyer-name">買 受 人</label>
-              <input id="buyer-name" type="text" autocomplete="organization" spellcheck="false" />
+              <span id="buyer-name-label">買 受 人</span>
+              <output id="buyer-name" class="buyer-name" aria-labelledby="buyer-name-label"></output>
             </div>
             <div class="buyer-line buyer-line--id">
-              <label for="buyer-tax-id">統一編號</label>
+              <span id="buyer-tax-id-label">統一編號</span>
               <div class="tax-id">
-                <input
-                  id="buyer-tax-id"
-                  class="tax-id__input"
-                  type="text"
-                  inputmode="numeric"
-                  maxlength="8"
-                  autocomplete="off"
-                  spellcheck="false"
-                  aria-describedby="tax-id-boxes"
-                />
-                <ol class="tax-id__boxes" id="tax-id-boxes" aria-hidden="true"></ol>
+                <ol class="tax-id__boxes" id="tax-id-boxes" aria-labelledby="buyer-tax-id-label"></ol>
                 <button type="button" class="icon-btn" id="btn-lookup-icon" aria-label="搜尋統編">
                   查
                 </button>
               </div>
               <div class="invoice-date">
                 <span>中 華 民 國</span>
-                <label class="sr-only" for="date-year">交易年</label>
-                <input id="date-year" class="num num--year" type="text" inputmode="numeric" maxlength="3" autocomplete="off" />
+                <output id="date-year" class="num num--year" aria-label="交易年"></output>
                 <span>年</span>
-                <label class="sr-only" for="date-month">交易月</label>
-                <input id="date-month" class="num num--md" type="text" inputmode="numeric" maxlength="2" autocomplete="off" />
+                <output id="date-month" class="num num--md" aria-label="交易月"></output>
                 <span>月</span>
-                <label class="sr-only" for="date-day">交易日</label>
-                <input id="date-day" class="num num--md" type="text" inputmode="numeric" maxlength="2" autocomplete="off" />
+                <output id="date-day" class="num num--md" aria-label="交易日"></output>
                 <span>日</span>
               </div>
             </div>
@@ -208,7 +186,7 @@
           <li>客戶給的是<strong>含稅</strong>金額：先填「總計」，銷售額與營業稅會依 總計 × 5 ÷ 105 四捨五入算出。</li>
           <li>報價是<strong>未稅</strong>：先填「銷售額合計」，營業稅＝銷售額 × 5% 四捨五入，總計＝銷售額＋稅。</li>
           <li>應稅、零稅率、免稅應分開開立；零稅率與免稅的營業稅為 0，總計等於銷售額。</li>
-          <li>「插入統編」以財政部公開稅籍資料查名稱，請再向買受人核對。</li>
+          <li>「插入統編」以財政部公開稅籍資料帶入買受人名稱與統編；發票上的名稱、統編與日期不可改。</li>
         </ul>
         <p class="disclaimer">
           本畫面為試算草稿，非正式統一發票，不含字軌號碼，亦不可列印作為憑證。僅供參考，請自行核對。資料來源：財政部財政資訊中心「全國營業（稅籍）登記資料集」，依
