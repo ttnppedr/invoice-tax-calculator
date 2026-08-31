@@ -65,4 +65,5 @@ test('parseTwd 只接受非負整數', () => {
   assert.equal(parseTwd('1,050'), 1050);
   assert.equal(parseTwd('10.5'), null);
   assert.equal(parseTwd('-1'), null);
+  assert.equal(parseTwd(String(Number.MAX_SAFE_INTEGER + 1)), null);
 });

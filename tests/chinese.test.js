@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { toCapitalPlaces, toChineseCapital } from '../src/chinese.js';
+import { isCapitalInRange, MAX_CAPITAL_AMOUNT, toCapitalPlaces, toChineseCapital } from '../src/chinese.js';
 
 test('常見發票金額', () => {
   assert.equal(toChineseCapital(0), '零元整');
@@ -34,4 +34,11 @@ test('格子：105 填入佰拾元', () => {
 test('格子：0 只在元位寫零', () => {
   const glyphs = toCapitalPlaces(0).map((p) => p.glyph);
   assert.deepEqual(glyphs, ['', '', '', '', '', '', '', '', '零']);
+});
+
+test('位值欄上限為 9 位數', () => {
+  assert.equal(isCapitalInRange(MAX_CAPITAL_AMOUNT), true);
+  assert.equal(isCapitalInRange(MAX_CAPITAL_AMOUNT + 1), false);
+  const glyphs = toCapitalPlaces(MAX_CAPITAL_AMOUNT).map((p) => p.glyph);
+  assert.deepEqual(glyphs, ['玖', '玖', '玖', '玖', '玖', '玖', '玖', '玖', '玖']);
 });

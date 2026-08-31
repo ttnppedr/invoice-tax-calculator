@@ -1,178 +1,285 @@
+import { lookupBusinessByNumber, LOOKUP_TIMEOUT_MS } from './business.js';
 import { CAPITAL_PLACES, toCapitalPlaces, toChineseCapital } from './chinese.js';
-import { currentPeriod, formatPeriod, periodOptions } from './period.js';
-import { computeInvoice, lineAmount, parseTwd } from './tax.js';
+import {
+  closeLookup,
+  createInvoiceState,
+  insertLookupResult,
+  openLookup,
+  resetInvoiceState,
+  setAmountFrom,
+  setBuyer,
+  setDate,
+  setLookupQuery,
+  setLookupStatus,
+  setPeriod,
+  setTaxType,
+} from './invoice-state.js';
+import { formatPeriod, periodOptions } from './period.js';
+import { parseTwd } from './tax.js';
 import './style.css';
 
-const LINE_COUNT = 8;
-
-const els = {
-  rocYear: document.querySelector('#roc-year'),
-  periodMonths: document.querySelector('#period-months'),
-  periodDisplay: document.querySelector('#period-display'),
-  buyerPanel: document.querySelector('#buyer-panel'),
-  buyerTaxId: document.querySelector('#buyer-tax-id'),
-  buyerError: document.querySelector('#buyer-error'),
-  btnBuyer: document.querySelector('#btn-buyer'),
-  btnClear: document.querySelector('#btn-clear'),
-  btnPrint: document.querySelector('#btn-print'),
-  taxChecks: [...document.querySelectorAll('input[name="tax-type"]')],
-  rows: document.querySelector('#item-rows'),
-  sales: document.querySelector('#sales'),
-  tax: document.querySelector('#tax'),
-  total: document.querySelector('#total'),
-  capitalBoxes: document.querySelector('#capital-boxes'),
-  capitalPhrase: document.querySelector('#capital-phrase'),
-  slip: document.querySelector('#slip'),
-  hint: document.querySelector('#source-hint'),
+const HINTS = {
+  idle: '先填「總計」＝含稅；先填「銷售額合計」＝未稅。',
+  sales: '以「銷售額合計」為準（未稅）：營業稅＝四捨五入(銷售額 × 5%)。',
+  total: '以「總計」為準（含稅）：營業稅＝四捨五入(總計 × 5 ÷ 105)。',
+  overflow: '金額超過中文大寫可顯示範圍（至億元）。',
 };
 
-/** @type {'idle' | 'sales' | 'total' | 'lines'} */
-let source = 'idle';
+const LOOKUP_MESSAGES = {
+  idle: '請輸入 8 位統一編號。',
+  loading: '查詢中…',
+  'invalid-format': '統一編號須為 8 位數字。',
+  'invalid-checksum': '統一編號檢查碼不正確，請重新確認。',
+  'not-found': '財政部公開資料查無此統一編號。',
+  timeout: '查詢逾時，請再試一次。',
+  error: '目前無法連線官方查詢服務，請改為手動填寫名稱與統編。',
+};
 
-function defaultPeriod() {
-  return currentPeriod();
+const els = {
+  hint: document.querySelector('#source-hint'),
+  invoice: document.querySelector('#invoice'),
+  periodDisplay: document.querySelector('#period-display'),
+  rocYear: document.querySelector('#roc-year'),
+  periodMonths: document.querySelector('#period-months'),
+  buyerName: document.querySelector('#buyer-name'),
+  buyerTaxId: document.querySelector('#buyer-tax-id'),
+  taxIdBoxes: document.querySelector('#tax-id-boxes'),
+  dateYear: document.querySelector('#date-year'),
+  dateMonth: document.querySelector('#date-month'),
+  dateDay: document.querySelector('#date-day'),
+  lineAmount: document.querySelector('#line-amount'),
+  salesInput: document.querySelector('#sales-input'),
+  salesOutput: document.querySelector('#sales-output'),
+  totalInput: document.querySelector('#total-input'),
+  totalOutput: document.querySelector('#total-output'),
+  taxOutput: document.querySelector('#tax-output'),
+  taxMarks: [...document.querySelectorAll('.tax-mark')],
+  capitalBoxes: document.querySelector('#capital-boxes'),
+  capitalPhrase: document.querySelector('#capital-phrase'),
+  btnLookup: document.querySelector('#btn-lookup'),
+  btnLookupIcon: document.querySelector('#btn-lookup-icon'),
+  btnClear: document.querySelector('#btn-clear'),
+  dialog: document.querySelector('#lookup-dialog'),
+  lookupForm: document.querySelector('#lookup-form'),
+  lookupQuery: document.querySelector('#lookup-query'),
+  lookupStatus: document.querySelector('#lookup-status'),
+  lookupResult: document.querySelector('#lookup-result'),
+  lookupResultTaxId: document.querySelector('#lookup-result-tax-id'),
+  lookupResultName: document.querySelector('#lookup-result-name'),
+  btnLookupClose: document.querySelector('#btn-lookup-close'),
+  btnLookupInsert: document.querySelector('#btn-lookup-insert'),
+};
+
+let state = createInvoiceState();
+const lookupCache = new Map();
+let lookupController = null;
+let lookupRequestId = 0;
+let lookupTrigger = els.btnLookup;
+
+function moneyText(value) {
+  return value === null ? '' : String(value);
 }
 
-function selectedTaxType() {
-  const checked = els.taxChecks.find((box) => box.checked);
-  return checked?.value ?? 'taxable';
+function setState(next) {
+  state = next;
+  render();
 }
 
-function setTaxType(value) {
-  for (const box of els.taxChecks) {
-    box.checked = box.value === value;
-  }
-}
-
-function readLines() {
-  return [...els.rows.querySelectorAll('tr')].map((row) => ({
-    name: row.querySelector('[data-field="name"]').value,
-    qty: parseTwd(row.querySelector('[data-field="qty"]').value),
-    unit: parseTwd(row.querySelector('[data-field="unit"]').value),
-    amountRaw: parseTwd(row.querySelector('[data-field="amount"]').value),
-    note: row.querySelector('[data-field="note"]').value,
-    amountCell: row.querySelector('[data-field="amount"]'),
-  }));
-}
-
-function linesHaveNumbers(lines) {
-  return lines.some((line) => line.qty !== null || line.unit !== null || line.amountRaw !== null);
-}
-
-function resolveLineAmount(line) {
-  if (line.qty !== null && line.unit !== null) return lineAmount(line.qty, line.unit);
-  return line.amountRaw;
-}
-
-function sumLineAmounts(lines) {
-  return lines.reduce((sum, line) => {
-    const amount = resolveLineAmount(line);
-    return amount === null ? sum : sum + amount;
-  }, 0);
-}
-
-function refreshComputedAmounts(lines) {
-  for (const line of lines) {
-    const computed = line.qty !== null && line.unit !== null;
-    line.amountCell.readOnly = computed;
-    if (computed) line.amountCell.value = String(lineAmount(line.qty, line.unit));
-  }
+function render() {
+  renderPeriod();
+  renderDate();
+  renderBuyer();
+  renderAmountSource();
+  renderInvoiceAmounts();
+  renderTaxType();
+  renderCapitalAmount();
+  renderLookupDialog();
 }
 
 function renderPeriod() {
-  const year = parseTwd(els.rocYear.value) ?? defaultPeriod().rocYear;
-  const start = Number(els.periodMonths.value);
-  els.periodDisplay.textContent = formatPeriod(year, start);
+  els.periodDisplay.textContent = formatPeriod(state.period.rocYear, state.period.startMonth);
+  if (document.activeElement !== els.rocYear) {
+    els.rocYear.value = String(state.period.rocYear);
+  }
+  els.periodMonths.value = String(state.period.startMonth);
 }
 
-function renderCapital(amount) {
+function renderDate() {
+  if (document.activeElement !== els.dateYear) els.dateYear.value = String(state.date.rocYear);
+  if (document.activeElement !== els.dateMonth) els.dateMonth.value = String(state.date.month);
+  if (document.activeElement !== els.dateDay) els.dateDay.value = String(state.date.day);
+}
+
+function renderBuyer() {
+  if (document.activeElement !== els.buyerName) els.buyerName.value = state.buyer.name;
+  if (document.activeElement !== els.buyerTaxId) els.buyerTaxId.value = state.buyer.taxId;
+  const digits = state.buyer.taxId.padEnd(8).slice(0, 8);
+  els.taxIdBoxes.replaceChildren(
+    ...[...digits].map((ch) => {
+      const li = document.createElement('li');
+      li.textContent = /\d/.test(ch) ? ch : '';
+      return li;
+    }),
+  );
+}
+
+function renderAmountSource() {
+  const fromSales = state.amountSource === 'sales';
+  const fromTotal = state.amountSource === 'total';
+  els.salesInput.hidden = fromTotal;
+  els.salesOutput.hidden = !fromTotal;
+  els.totalInput.hidden = fromSales;
+  els.totalOutput.hidden = !fromSales;
+  els.salesInput.disabled = fromTotal;
+  els.totalInput.disabled = fromSales;
+  if (state.amountError === 'overflow') {
+    els.hint.textContent = HINTS.overflow;
+    return;
+  }
+  els.hint.textContent = HINTS[state.amountSource];
+}
+
+function renderInvoiceAmounts() {
+  const { sales, tax, total } = state.invoice;
+  const hasAmount = sales !== null || total !== null;
+  els.invoice.classList.toggle('has-amount', hasAmount);
+  els.lineAmount.textContent = moneyText(sales);
+  if (document.activeElement !== els.salesInput) {
+    els.salesInput.value = state.amountSource === 'sales' ? moneyText(state.sourceValue) : '';
+  }
+  els.salesOutput.textContent = moneyText(sales);
+  if (document.activeElement !== els.totalInput) {
+    els.totalInput.value = state.amountSource === 'total' ? moneyText(state.sourceValue) : '';
+  }
+  els.totalOutput.textContent = moneyText(total);
+  els.taxOutput.textContent = moneyText(tax);
+}
+
+function renderTaxType() {
+  for (const btn of els.taxMarks) {
+    const on = btn.dataset.tax === state.taxType;
+    btn.setAttribute('aria-pressed', String(on));
+    btn.textContent = on ? '✓' : '';
+  }
+}
+
+function renderCapitalAmount() {
+  const amount = state.amountError || state.invoice.total === null ? null : state.invoice.total;
   const places = amount === null ? CAPITAL_PLACES.map((p) => ({ ...p, glyph: '' })) : toCapitalPlaces(amount);
   els.capitalBoxes.replaceChildren(
     ...places.map((place) => {
       const li = document.createElement('li');
-      li.innerHTML = `<span class="place">${place.label}</span><span class="glyph">${place.glyph}</span>`;
+      const label = document.createElement('span');
+      label.className = 'place';
+      label.textContent = place.label;
+      const glyph = document.createElement('span');
+      glyph.className = 'glyph';
+      glyph.textContent = place.glyph;
+      li.append(label, glyph);
       return li;
     }),
   );
   els.capitalPhrase.textContent = amount === null ? '' : toChineseCapital(amount);
 }
 
-function setMoneyFields({ sales, tax, total }, { fillSales = true, fillTotal = true } = {}) {
-  if (fillSales) els.sales.value = sales === null ? '' : String(sales);
-  if (fillTotal) els.total.value = total === null ? '' : String(total);
-  els.tax.textContent = tax === null ? '—' : String(tax);
-  renderCapital(total);
+function renderLookupDialog() {
+  if (state.lookup.open && !els.dialog.open) {
+    els.dialog.showModal();
+    els.lookupQuery.focus();
+  }
+  if (!state.lookup.open && els.dialog.open) {
+    els.dialog.close();
+  }
+  if (document.activeElement !== els.lookupQuery) {
+    els.lookupQuery.value = state.lookup.query;
+  }
+  const success = state.lookup.status === 'success' && state.lookup.result;
+  els.lookupResult.hidden = !success;
+  if (success) {
+    els.lookupResultTaxId.textContent = state.lookup.result.taxId;
+    els.lookupResultName.textContent = state.lookup.result.name;
+  } else {
+    els.lookupResultTaxId.textContent = '';
+    els.lookupResultName.textContent = '';
+  }
+  if (state.lookup.message) {
+    els.lookupStatus.textContent = state.lookup.message;
+  } else if (state.lookup.status === 'idle') {
+    els.lookupStatus.textContent = LOOKUP_MESSAGES.idle;
+  } else {
+    els.lookupStatus.textContent = LOOKUP_MESSAGES[state.lookup.status] ?? '';
+  }
 }
 
-function hintFor(mode) {
-  if (mode === 'lines') return '明細列有數字：銷售額合計＝各列金額加總，再依稅別算出營業稅與總計。';
-  if (mode === 'total') return '以「總計」為準（含稅）：營業稅＝四捨五入(總計 × 5 ÷ 105)。';
-  if (mode === 'sales') return '以「銷售額合計」為準（未稅）：營業稅＝四捨五入(銷售額 × 5%)。';
-  return '先填「總計」＝含稅；先填「銷售額合計」＝未稅。明細有數字時，銷售額改由金額加總。';
+function digitsOnly(raw, max) {
+  return raw.replace(/\D/g, '').slice(0, max);
 }
 
-function recalc() {
-  const lines = readLines();
-  refreshComputedAmounts(lines);
-  const fromLines = linesHaveNumbers(lines);
-  if (!fromLines && source === 'lines') {
-    source = parseTwd(els.sales.value) !== null ? 'sales' : 'idle';
-  }
-  els.slip.classList.toggle('lines-active', fromLines);
-  els.sales.readOnly = fromLines;
-
-  const mode = fromLines ? 'lines' : source;
-  els.hint.textContent = hintFor(mode);
-
-  if (mode === 'idle') {
-    setMoneyFields({ sales: null, tax: null, total: null });
-    return;
-  }
-
-  const taxType = selectedTaxType();
-  if (mode === 'lines') {
-    const sales = sumLineAmounts(lines);
-    const result = computeInvoice(taxType, 'sales', sales);
-    setMoneyFields(result);
-    return;
-  }
-
-  if (mode === 'sales') {
-    const sales = parseTwd(els.sales.value);
-    if (sales === null) {
-      setMoneyFields({ sales: null, tax: null, total: null }, { fillSales: false });
-      return;
-    }
-    setMoneyFields(computeInvoice(taxType, 'sales', sales), { fillSales: false });
-    return;
-  }
-
-  const total = parseTwd(els.total.value);
-  if (total === null) {
-    setMoneyFields({ sales: null, tax: null, total: null }, { fillTotal: false });
-    return;
-  }
-  setMoneyFields(computeInvoice(taxType, 'total', total), { fillTotal: false });
+function applyAmountInput(source, raw) {
+  const parsed = parseTwd(digitsOnly(raw, 15));
+  setState(setAmountFrom(state, source, parsed));
 }
 
-function buildRows() {
-  els.rows.replaceChildren(
-    ...Array.from({ length: LINE_COUNT }, () => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="col-name"><input data-field="name" type="text" autocomplete="off" /></td>
-        <td class="col-qty"><input data-field="qty" type="text" inputmode="numeric" autocomplete="off" /></td>
-        <td class="col-unit"><input data-field="unit" type="text" inputmode="numeric" autocomplete="off" /></td>
-        <td class="col-amt"><input data-field="amount" type="text" inputmode="numeric" autocomplete="off" /></td>
-        <td class="col-note"><input data-field="note" type="text" autocomplete="off" /></td>
-      `;
-      return tr;
-    }),
-  );
+function cancelLookup() {
+  lookupController?.abort();
+  lookupController = null;
+}
+
+function startLookup() {
+  const query = state.lookup.query;
+  const cached = lookupCache.get(query);
+  if (cached) {
+    setState(setLookupStatus(state, 'success', { result: cached, message: '' }));
+    return;
+  }
+
+  cancelLookup();
+  const requestId = ++lookupRequestId;
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = window.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, LOOKUP_TIMEOUT_MS);
+  lookupController = controller;
+  setState(setLookupStatus(state, 'loading', { message: LOOKUP_MESSAGES.loading }));
+
+  lookupBusinessByNumber(query, {
+    signal: controller.signal,
+    getTimedOut: () => timedOut,
+  })
+    .then((result) => {
+      if (requestId !== lookupRequestId) return;
+      if (result.ok) {
+        lookupCache.set(result.taxId, { taxId: result.taxId, name: result.name });
+        setState(setLookupStatus(state, 'success', { result, message: '' }));
+        return;
+      }
+      if (result.reason === 'aborted') return;
+      setState(
+        setLookupStatus(state, result.reason, {
+          message: LOOKUP_MESSAGES[result.reason] ?? LOOKUP_MESSAGES.error,
+        }),
+      );
+    })
+    .finally(() => {
+      window.clearTimeout(timer);
+      if (lookupController === controller) lookupController = null;
+    });
+}
+
+function openLookupDialog(trigger) {
+  lookupTrigger = trigger;
+  setState(openLookup(state));
+}
+
+function closeLookupDialog() {
+  cancelLookup();
+  setState(closeLookup(state));
+  lookupTrigger?.focus();
 }
 
 function buildPeriodOptions() {
-  const { rocYear, startMonth } = defaultPeriod();
   els.periodMonths.replaceChildren(
     ...periodOptions().map((opt) => {
       const option = document.createElement('option');
@@ -181,93 +288,89 @@ function buildPeriodOptions() {
       return option;
     }),
   );
-  els.rocYear.value = String(rocYear);
-  els.periodMonths.value = String(startMonth);
-  renderPeriod();
-}
-
-function validateBuyer() {
-  const raw = els.buyerTaxId.value.trim();
-  const ok = raw === '' || /^\d{8}$/.test(raw);
-  els.buyerError.hidden = ok;
-  els.buyerTaxId.setAttribute('aria-invalid', ok ? 'false' : 'true');
-}
-
-function clearForm() {
-  source = 'idle';
-  setTaxType('taxable');
-  els.buyerTaxId.value = '';
-  els.buyerError.hidden = true;
-  els.buyerPanel.hidden = true;
-  els.btnBuyer.setAttribute('aria-expanded', 'false');
-  for (const input of els.rows.querySelectorAll('input')) input.value = '';
-  els.sales.readOnly = false;
-  setMoneyFields({ sales: null, tax: null, total: null });
-  buildPeriodOptions();
-  els.hint.textContent = hintFor('idle');
-  els.slip.classList.remove('lines-active');
-}
-
-function onlyDigits(event) {
-  const allowed = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
-  if (allowed.includes(event.key) || event.ctrlKey || event.metaKey) return;
-  if (!/^\d$/.test(event.key)) event.preventDefault();
 }
 
 function init() {
-  buildRows();
   buildPeriodOptions();
-  renderCapital(null);
+  render();
 
   els.rocYear.addEventListener('input', () => {
-    els.rocYear.value = els.rocYear.value.replace(/\D/g, '').slice(0, 3);
-    renderPeriod();
+    const rocYear = parseTwd(digitsOnly(els.rocYear.value, 3));
+    if (rocYear === null) return;
+    setState(setPeriod(state, { rocYear }));
   });
-  els.periodMonths.addEventListener('change', renderPeriod);
+  els.periodMonths.addEventListener('change', () => {
+    setState(setPeriod(state, { startMonth: Number(els.periodMonths.value) }));
+  });
 
-  els.btnBuyer.addEventListener('click', () => {
-    const open = els.buyerPanel.hidden;
-    els.buyerPanel.hidden = !open;
-    els.btnBuyer.setAttribute('aria-expanded', String(open));
-    if (open) els.buyerTaxId.focus();
+  els.dateYear.addEventListener('input', () => {
+    const rocYear = parseTwd(digitsOnly(els.dateYear.value, 3));
+    if (rocYear === null) return;
+    setState(setDate(state, { rocYear }));
+  });
+  els.dateMonth.addEventListener('input', () => {
+    const month = parseTwd(digitsOnly(els.dateMonth.value, 2));
+    if (month === null || month < 1 || month > 12) return;
+    setState(setDate(state, { month }));
+  });
+  els.dateDay.addEventListener('input', () => {
+    const day = parseTwd(digitsOnly(els.dateDay.value, 2));
+    if (day === null || day < 1 || day > 31) return;
+    setState(setDate(state, { day }));
+  });
+
+  els.buyerName.addEventListener('input', () => {
+    setState(setBuyer(state, { name: els.buyerName.value }));
   });
   els.buyerTaxId.addEventListener('input', () => {
-    els.buyerTaxId.value = els.buyerTaxId.value.replace(/\D/g, '').slice(0, 8);
-    validateBuyer();
+    setState(setBuyer(state, { taxId: digitsOnly(els.buyerTaxId.value, 8) }));
   });
 
-  els.btnClear.addEventListener('click', clearForm);
-  els.btnPrint.addEventListener('click', () => window.print());
+  els.salesInput.addEventListener('input', () => {
+    els.salesInput.value = digitsOnly(els.salesInput.value, 15);
+    applyAmountInput('sales', els.salesInput.value);
+  });
+  els.totalInput.addEventListener('input', () => {
+    els.totalInput.value = digitsOnly(els.totalInput.value, 15);
+    applyAmountInput('total', els.totalInput.value);
+  });
 
-  for (const box of els.taxChecks) {
-    box.addEventListener('change', () => {
-      if (box.checked) setTaxType(box.value);
-      else if (!els.taxChecks.some((other) => other.checked)) setTaxType(box.value);
-      recalc();
+  for (const btn of els.taxMarks) {
+    btn.addEventListener('click', () => {
+      setState(setTaxType(state, btn.dataset.tax));
     });
   }
 
-  els.rows.addEventListener('input', (event) => {
-    const field = event.target.dataset?.field;
-    if (field === 'qty' || field === 'unit' || field === 'amount') {
-      event.target.value = event.target.value.replace(/\D/g, '');
-    }
-    if (field === 'qty' || field === 'unit' || field === 'amount') source = 'lines';
-    recalc();
+  els.btnClear.addEventListener('click', () => {
+    cancelLookup();
+    setState(resetInvoiceState());
+    els.salesInput.focus();
   });
 
-  els.sales.addEventListener('keydown', onlyDigits);
-  els.total.addEventListener('keydown', onlyDigits);
-  els.sales.addEventListener('input', () => {
-    if (els.sales.readOnly) return;
-    els.sales.value = els.sales.value.replace(/\D/g, '');
-    source = 'sales';
-    recalc();
+  els.btnLookup.addEventListener('click', () => openLookupDialog(els.btnLookup));
+  els.btnLookupIcon.addEventListener('click', () => openLookupDialog(els.btnLookupIcon));
+  els.btnLookupClose.addEventListener('click', closeLookupDialog);
+
+  els.dialog.addEventListener('close', () => {
+    if (state.lookup.open) {
+      cancelLookup();
+      state = closeLookup(state);
+      lookupTrigger?.focus();
+    }
   });
-  els.total.addEventListener('input', () => {
-    els.total.value = els.total.value.replace(/\D/g, '');
-    source = 'total';
-    recalc();
+
+  els.lookupQuery.addEventListener('input', () => {
+    setState(setLookupQuery(state, digitsOnly(els.lookupQuery.value, 8)));
+  });
+
+  els.lookupForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    startLookup();
+  });
+
+  els.btnLookupInsert.addEventListener('click', () => {
+    setState(insertLookupResult(state));
+    lookupTrigger?.focus();
   });
 }
 

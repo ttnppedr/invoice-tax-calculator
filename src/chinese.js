@@ -54,6 +54,13 @@ export function toChineseCapital(amount) {
   return `${out}元整`;
 }
 
+/** 位值欄最多 9 格（億…元），超過此值不得計算。 */
+export const MAX_CAPITAL_AMOUNT = 999_999_999;
+
+export function isCapitalInRange(amount) {
+  return Number.isInteger(amount) && amount >= 0 && amount <= MAX_CAPITAL_AMOUNT;
+}
+
 export const CAPITAL_PLACES = [
   { key: 'yi', label: '億', weight: 100_000_000 },
   { key: 'qianWan', label: '仟', weight: 10_000_000 },
