@@ -6,6 +6,7 @@
   --focus: #2f5d4a;
   --danger: #8f2d28;
   --invoice-paper: #fbfaf4;
+  --invoice-min-width: 804px;
   --serif: "DFKai-SB", "BiauKai", "Kaiti TC", "Noto Serif TC", "Songti TC", serif;
   --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   --hand: "Iansui", "Yuji Mai", "Kaiti TC", "DFKai-SB", cursive;
@@ -124,7 +125,7 @@ h1 {
 }
 
 .invoice-scroll {
-  overflow: visible;
+  overflow-x: auto;
 }
 
 .invoice {
@@ -133,7 +134,7 @@ h1 {
   --mark-blue: #0b3a8c;
   position: relative;
   width: 100%;
-  max-width: 100%;
+  min-width: var(--invoice-min-width);
   margin: 0;
   padding: 0.75rem 1.05rem 0.7rem;
   color: var(--form-ink);
@@ -192,8 +193,7 @@ h1 {
 .money,
 #line-amount,
 .tax-mark,
-.stamp-placeholder,
-.capital__boxes .glyph {
+.stamp-placeholder {
   font-family: var(--hand);
   font-weight: 400;
 }
@@ -409,9 +409,9 @@ h1 {
 
 .callout {
   position: absolute;
-  left: calc(100% + 0.4rem);
-  top: 50%;
-  transform: translateY(-50%);
+  left: 50%;
+  bottom: calc(100% + 0.4rem);
+  transform: translateX(-50%);
   background: var(--danger);
   color: #fff;
   border: 1px solid var(--danger);
@@ -429,25 +429,11 @@ h1 {
 .callout::before {
   content: "";
   position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
   border: 5px solid transparent;
-  border-right-color: var(--danger);
-}
-
-.callout--lookup {
-  left: calc(100% + 0.4rem);
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.callout--sales {
-  top: 42%;
-}
-
-.callout--total {
-  top: 58%;
+  border-top-color: var(--danger);
 }
 
 .invoice.has-amount .money-cell .callout,
@@ -579,7 +565,8 @@ output.money[hidden] {
 }
 
 .capital__boxes .glyph {
-  font-size: 1.55rem;
+  font-family: var(--serif);
+  font-size: 1.3rem;
   font-weight: 400;
   color: var(--mark-blue);
   line-height: 1;
