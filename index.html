@@ -37,24 +37,24 @@
       <div class="invoice-scroll">
         <article class="invoice" id="invoice" aria-label="三聯式統一發票試算草稿">
           <header class="invoice-header">
-            <div class="invoice-title">
-              <h2>統一發票</h2>
-              <span class="invoice-title__kind">（三聯式）</span>
-            </div>
+            <h2>統　一　發　票（三聯式）</h2>
             <p class="invoice-period" id="period-display"></p>
           </header>
 
           <div class="buyer-meta">
             <div class="buyer-line">
-              <span id="buyer-name-label">買 受 人</span>
+              <span class="buyer-label" id="buyer-name-label">買 受 人：</span>
               <output id="buyer-name" class="buyer-name" aria-labelledby="buyer-name-label"></output>
             </div>
             <div class="buyer-line buyer-line--id">
-              <span id="buyer-tax-id-label">統一編號</span>
+              <span class="buyer-label" id="buyer-tax-id-label">統一編號：</span>
               <div class="tax-id">
                 <ol class="tax-id__boxes" id="tax-id-boxes" aria-labelledby="buyer-tax-id-label"></ol>
                 <button type="button" class="icon-btn" id="btn-lookup-icon" aria-label="搜尋統編">
-                  查
+                  <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
+                    <circle cx="6.5" cy="6.5" r="4.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+                    <line x1="10" y1="10" x2="14.4" y2="14.4" stroke="currentColor" stroke-width="1.8" />
+                  </svg>
                 </button>
               </div>
               <div class="invoice-date">
@@ -67,7 +67,7 @@
                 <span>日</span>
               </div>
             </div>
-            <p class="address-line">地　　址</p>
+            <p class="buyer-line"><span class="buyer-label">地　　址：</span></p>
           </div>
 
           <table class="invoice-grid">
@@ -113,9 +113,7 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td rowspan="5" class="stamp-cell">
-                  <span class="stamp-placeholder">（發票章）</span>
-                </td>
+                <td rowspan="6" class="stamp-cell"></td>
               </tr>
               <tr class="void-row">
                 <td></td>
@@ -124,10 +122,12 @@
                 <td></td>
               </tr>
               <tr>
-                <td colspan="3">銷售額合計</td>
+                <td colspan="3" class="spread-label">銷售額合計</td>
                 <td class="money-cell">
+                  <label class="sr-only" for="sales-input">銷售額合計</label>
                   <input id="sales-input" class="money" type="text" inputmode="numeric" autocomplete="off" />
-                  <output id="sales-output" class="money" hidden></output>
+                  <output id="sales-output" class="money" hidden aria-label="銷售額合計"></output>
+                  <span class="callout" aria-hidden="true">未稅價，請先填這</span>
                 </td>
               </tr>
               <tr>
@@ -155,10 +155,12 @@
                 <td><output id="tax-output" class="money"></output></td>
               </tr>
               <tr>
-                <td colspan="3">總計</td>
+                <td colspan="3" class="spread-label">總計</td>
                 <td class="money-cell">
+                  <label class="sr-only" for="total-input">總計</label>
                   <input id="total-input" class="money" type="text" inputmode="numeric" autocomplete="off" />
-                  <output id="total-output" class="money" hidden></output>
+                  <output id="total-output" class="money" hidden aria-label="總計"></output>
+                  <span class="callout" aria-hidden="true">含稅價，請先填這</span>
                 </td>
               </tr>
               <tr>
@@ -167,15 +169,14 @@
                     <p>總計新臺幣<br />（中文大寫）</p>
                     <ol class="capital__boxes" id="capital-boxes"></ol>
                   </div>
-                  <p class="capital__phrase" id="capital-phrase"></p>
                 </td>
               </tr>
             </tbody>
           </table>
 
           <footer class="copy-footer">
-            <span>第一聯　存根聯</span>
             <span>※應稅、零稅率、免稅之銷售額應分別開立統一發票，並應於各該欄打「✓」。</span>
+            <span class="copy-name">第一聯　存根聯</span>
           </footer>
         </article>
       </div>
@@ -187,9 +188,10 @@
           <li>報價是<strong>未稅</strong>：先填「銷售額合計」，營業稅＝銷售額 × 5% 四捨五入，總計＝銷售額＋稅。</li>
           <li>應稅、零稅率、免稅應分開開立；零稅率與免稅的營業稅為 0，總計等於銷售額。</li>
           <li>「插入統編」以財政部公開稅籍資料帶入買受人名稱與統編；發票上的名稱、統編與日期不可改。</li>
+          <li>畫面是內頁式紙底加上框線表格，非正式發票，請對照紙本格子抄寫。</li>
         </ul>
         <p class="disclaimer">
-          本畫面為試算草稿，非正式統一發票，不含字軌號碼，亦不可列印作為憑證。僅供參考，請自行核對。資料來源：財政部財政資訊中心「全國營業（稅籍）登記資料集」，依
+          本畫面為試算草稿，非正式統一發票，不含可用字軌號碼，亦不可列印作為憑證。僅供參考，請自行核對。統編資料來源：財政部財政資訊中心「全國營業（稅籍）登記資料集」，依
           <a href="https://data.gov.tw/license" rel="noreferrer">政府資料開放授權條款第 1 版</a>
           使用。
         </p>

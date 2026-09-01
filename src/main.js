@@ -1,5 +1,5 @@
 import { lookupBusinessByNumber, LOOKUP_TIMEOUT_MS } from './business.js';
-import { CAPITAL_PLACES, toCapitalPlaces, toChineseCapital } from './chinese.js';
+import { CAPITAL_PLACES, toCapitalPlaces } from './chinese.js';
 import {
   closeLookup,
   createInvoiceState,
@@ -49,7 +49,6 @@ const els = {
   taxOutput: document.querySelector('#tax-output'),
   taxMarks: [...document.querySelectorAll('.tax-mark')],
   capitalBoxes: document.querySelector('#capital-boxes'),
-  capitalPhrase: document.querySelector('#capital-phrase'),
   btnLookup: document.querySelector('#btn-lookup'),
   btnLookupIcon: document.querySelector('#btn-lookup-icon'),
   btnClear: document.querySelector('#btn-clear'),
@@ -168,7 +167,6 @@ function renderCapitalAmount() {
       return li;
     }),
   );
-  els.capitalPhrase.textContent = amount === null ? '' : toChineseCapital(amount);
 }
 
 function renderLookupDialog() {

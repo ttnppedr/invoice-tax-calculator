@@ -5,7 +5,6 @@
   --muted: #5c5a4e;
   --focus: #2f5d4a;
   --danger: #8f2d28;
-  --invoice-width: 760px;
   --invoice-paper: #fbfaf4;
   --serif: "DFKai-SB", "BiauKai", "Kaiti TC", "Noto Serif TC", "Songti TC", serif;
   --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
@@ -46,7 +45,7 @@ body {
 }
 
 .app {
-  width: min(860px, calc(100% - 1.5rem));
+  width: min(1080px, calc(100% - 1.5rem));
   margin: 0 auto;
   padding: 1.25rem 0 3rem;
 }
@@ -128,309 +127,377 @@ h1 {
 }
 
 .invoice {
-  min-width: var(--invoice-width);
-  width: var(--invoice-width);
+  --form-ink: #4d4d00;
+  position: relative;
+  isolation: isolate;
+  width: min(920px, 100%);
+  min-width: 720px;
   margin: 0 auto;
-  padding: 1rem 1.1rem 0.85rem;
-  background: var(--invoice-paper);
-  color: var(--ink);
+  padding: 0.75rem 1.05rem 0.7rem;
+  color: var(--form-ink);
   font-family: var(--serif);
-  border: 1px solid var(--rule);
+  background-color: #fbf8f1;
+}
+
+.invoice::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url("/invoice-inner-page.svg") center / cover no-repeat;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.invoice > * {
+  position: relative;
+  z-index: 1;
 }
 
 .invoice-header {
   text-align: center;
-  margin-bottom: 0.7rem;
+  margin-bottom: 0.45rem;
 }
 
-.invoice-title {
-  display: flex;
-  justify-content: center;
-  align-items: baseline;
-  gap: 0.35rem;
-}
-
-.invoice-title h2 {
+.invoice-header h2 {
   margin: 0;
-  font-size: 1.85rem;
-  letter-spacing: 0.45em;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
-.invoice-title__kind {
-  font-size: 0.95rem;
-  letter-spacing: 0.08em;
-}
-
 .invoice-period {
-  margin: 0.25rem 0 0.35rem;
-  letter-spacing: 0.12em;
-  font-size: 1.05rem;
-}
-
-.invoice-date,
-.buyer-line,
-.lookup-row {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+  margin: 0.2rem 0 0;
+  letter-spacing: 0.18em;
+  font-weight: 700;
 }
 
 .buyer-meta {
-  margin-bottom: 0.55rem;
-  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
 }
 
 .buyer-line {
-  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.14rem 0;
 }
 
-.buyer-line > span:first-child {
-  flex: 0 0 5.2rem;
-  letter-spacing: 0.28em;
-}
-
-.buyer-line--id {
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.6rem 1rem;
+.buyer-label {
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .buyer-name {
-  flex: 1;
-  min-width: 12rem;
-  min-height: 1.4em;
-  border: 0;
-  border-bottom: 1px solid var(--rule);
-  background: transparent;
-  font: inherit;
-  color: inherit;
-  padding: 0.1rem 0.2rem;
+  display: block;
+  min-height: 1.45rem;
+  padding-top: 0.1rem;
 }
 
 .tax-id {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.45rem;
+  min-width: 0;
 }
 
 .tax-id__boxes {
   list-style: none;
-  display: grid;
-  grid-template-columns: repeat(8, 1.45rem);
   margin: 0;
   padding: 0;
-  border: 1px solid var(--rule);
+  display: flex;
 }
 
 .tax-id__boxes li {
-  min-height: 1.55rem;
-  display: grid;
-  place-items: center;
-  border-right: 1px solid var(--rule);
+  min-width: 1rem;
+  text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
-.tax-id__boxes li:last-child {
-  border-right: 0;
-}
-
-.icon-btn {
-  border: 1px solid var(--rule);
-  background: #fff;
-  min-width: 1.7rem;
-  min-height: 1.7rem;
-}
-
 .invoice-date {
+  display: flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  white-space: nowrap;
   margin-left: auto;
-  font-size: 0.9rem;
-}
-
-.address-line {
-  margin: 0.15rem 0 0;
-  letter-spacing: 0.28em;
-  min-height: 1.4em;
-}
-
-.num,
-.money {
-  font: inherit;
-  color: inherit;
-  background: transparent;
-  border: 1px solid var(--rule);
+  margin-right: 14%;
+  font-weight: 700;
 }
 
 .num {
   display: inline-block;
   text-align: center;
-  padding: 0.05rem 0.15rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .num--year {
-  width: 2.6rem;
+  min-width: 2rem;
 }
 
 .num--md {
-  width: 2rem;
+  min-width: 1.5rem;
 }
 
 .invoice-grid {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+  border: 2px solid var(--form-ink);
+}
+
+.col-name {
+  width: 27%;
+}
+
+.col-qty {
+  width: 11.5%;
+}
+
+.col-unit {
+  width: 13%;
+}
+
+.col-amt {
+  width: 17.5%;
+}
+
+.col-note {
+  width: 31%;
 }
 
 .invoice-grid th,
 .invoice-grid td {
-  border: 1px solid var(--rule);
-  padding: 0.22rem 0.3rem;
+  border: 1px solid var(--form-ink);
+  height: 2rem;
+  padding: 0.12rem 0.28rem;
   text-align: center;
-  height: 1.7rem;
+  vertical-align: middle;
 }
 
-.col-name {
-  width: 28%;
-}
-
-.col-qty,
-.col-unit,
-.col-amt {
-  width: 14%;
-}
-
-.col-note {
-  width: 30%;
-}
-
-.invoice.has-amount .void-row td:nth-child(-n + 4) {
-  background: linear-gradient(
-    to top right,
-    transparent calc(50% - 0.6px),
-    var(--rule),
-    transparent calc(50% + 0.6px)
-  );
-}
-
-.money-cell {
-  padding: 0;
-}
-
-.money {
-  width: 100%;
-  border: 0;
-  text-align: right;
-  padding: 0.25rem 0.35rem;
-  font-variant-numeric: tabular-nums;
-}
-
-output.money {
-  display: block;
-  min-height: 1.4rem;
-}
-
-.tax-cell {
-  padding: 0;
-}
-
-.tax-options {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.tax-options th,
-.tax-options td {
-  border: 1px solid var(--rule);
-  padding: 0.15rem;
-  font-weight: 400;
-  white-space: nowrap;
-}
-
-.tax-options th[scope='row'] {
-  width: 3.6rem;
-}
-
-.tax-mark {
-  width: 100%;
-  min-height: 1.35rem;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  font-size: 1rem;
-}
-
-.tax-mark[aria-pressed='true'] {
+.invoice-grid thead th {
+  border-bottom-width: 2px;
   font-weight: 700;
+}
+
+.invoice-grid thead th,
+.spread-label {
+  text-align: justify;
+  text-align-last: justify;
+  padding: 0.12rem 0.85rem;
+  font-weight: 700;
+}
+
+.invoice.has-amount .void-row > td:nth-child(-n + 4) {
+  background-image: repeating-linear-gradient(
+    -18deg,
+    transparent,
+    transparent 8px,
+    rgba(77, 77, 0, 0.38) 8px,
+    rgba(77, 77, 0, 0.38) 9px
+  );
 }
 
 .stamp-cell {
   vertical-align: middle;
 }
 
-.stamp-placeholder {
-  display: inline-block;
-  padding: 1.2rem 0.4rem;
-  color: var(--muted);
-  letter-spacing: 0.12em;
+.money-cell {
+  padding: 0;
+  position: relative;
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: #fff;
+  min-width: 1.6rem;
+  min-height: 1.6rem;
+  color: var(--form-ink);
+}
+
+.money {
+  width: 100%;
+  height: 100%;
+  min-height: 2rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: right;
+  padding: 0 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.money-cell input.money {
+  box-sizing: border-box;
+  width: calc(100% - 0.6rem);
+  height: 1.55rem;
+  min-height: 0;
+  margin: 0.22rem 0.3rem;
+  padding: 0 0.3rem;
+  background: #fff;
+  border: 1px solid #9a9a80;
+  border-radius: 2px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+
+.callout {
+  position: absolute;
+  left: calc(100% + 0.6rem);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #3c3c3c;
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.5rem 0.65rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.callout::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: #3c3c3c;
+}
+
+.invoice.has-amount .callout {
+  display: none;
+}
+
+output.money,
+#line-amount {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+output.money[hidden] {
+  display: none;
+}
+
+.tax-cell {
+  padding: 0;
+  height: 100%;
+}
+
+.tax-options {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.tax-options th,
+.tax-options td {
+  border: 0;
+  height: 1.55rem;
+  padding: 0.1rem;
+}
+
+.tax-options th:not([scope='row']),
+.tax-options td {
+  border-left: 1px solid var(--form-ink);
+}
+
+.tax-options tr:first-child th:not([scope='row']) {
+  border-bottom: 1px solid var(--form-ink);
+}
+
+.tax-options th[scope='row'] {
+  width: 44%;
+  text-align: justify;
+  text-align-last: justify;
+  padding: 0.1rem 0.85rem;
+}
+
+.tax-mark {
+  width: 100%;
+  min-height: 1.55rem;
+  border: 0;
+  background: transparent;
+  color: #8f2d28;
+  font-size: 1.05rem;
+}
+
+.tax-mark[aria-pressed='true'] {
+  font-weight: 700;
+}
+
+.capital-cell {
+  padding: 0;
+  text-align: left;
 }
 
 .capital {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  text-align: left;
+  align-items: stretch;
+  height: 100%;
 }
 
-.capital p {
+.capital > p {
   margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.35;
-  flex: 0 0 5.5rem;
+  flex: 0 0 5.4rem;
+  padding: 0.14rem 0.35rem;
+  border-right: 1px solid var(--form-ink);
+  font-size: 0.72rem;
+  line-height: 1.3;
+  display: grid;
+  align-content: center;
+  text-align: left;
 }
 
 .capital__boxes {
   list-style: none;
   margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: 0.15rem;
+  padding: 0 0.4rem;
+  display: flex;
   flex: 1;
+  min-width: 0;
+  align-items: center;
 }
 
 .capital__boxes li {
-  border: 1px solid var(--rule);
-  min-height: 2.4rem;
+  flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  min-width: 0;
 }
 
 .capital__boxes .place {
-  font-size: 0.68rem;
-  border-bottom: 1px solid var(--rule);
-  padding: 0.05rem 0;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .capital__boxes .glyph {
-  flex: 1;
-  display: grid;
-  place-items: center;
-  min-height: 1.4rem;
-}
-
-.capital__phrase {
-  margin: 0.25rem 0 0;
-  text-align: left;
-  min-height: 1.2em;
+  font-size: 1rem;
 }
 
 .copy-footer {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
-  margin-top: 0.45rem;
+  align-items: baseline;
+  gap: 0.8rem;
+  margin-top: 0.35rem;
   font-size: 0.78rem;
+}
+
+.copy-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .notes {
@@ -483,6 +550,9 @@ dialog::backdrop {
 }
 
 .lookup-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   margin: 0.35rem 0 0.6rem;
 }
 
