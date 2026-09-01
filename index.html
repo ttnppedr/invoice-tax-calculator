@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
       content="三聯式統一發票試算：5% 營業稅、銷售額與總計互算、統編查名稱、新臺幣中文大寫。非正式發票。"
@@ -20,20 +20,23 @@
     <p class="print-only">本工具不提供發票列印。</p>
     <main class="app">
       <header class="tool-header">
-        <div>
+        <div class="tool-header__titles">
           <h1>三聯式統一發票試算</h1>
           <p class="lede">填寫參考 · 非正式發票 · 營業稅 5%</p>
         </div>
         <div class="tool-header__actions">
+          <button type="button" class="btn btn-enlarge" id="btn-enlarge" aria-label="滿版對照發票" aria-expanded="false">對照</button>
+          <button type="button" class="btn btn-enlarge-close" id="btn-enlarge-close" aria-label="結束對照">關閉</button>
           <button type="button" class="btn btn--danger" id="btn-clear">清除重填</button>
         </div>
       </header>
 
-      <p class="hint" id="source-hint" role="status">
-        先填「總計」＝含稅；先填「銷售額合計」＝未稅。
-      </p>
+      <p class="hint" id="source-hint" role="status" hidden></p>
+
+      <p class="enlarge-prompt" id="enlarge-prompt" role="status">請將裝置轉橫向</p>
 
       <div class="invoice-scroll">
+        <div class="invoice-scale" id="invoice-scale">
         <article class="invoice" id="invoice" aria-label="三聯式統一發票試算草稿">
           <header class="invoice-header">
             <h2>統　一　發　票（三聯式）</h2>
@@ -190,6 +193,7 @@
             <span class="copy-name">第一聯　存根聯</span>
           </footer>
         </article>
+        </div>
       </div>
 
       <p class="disclaimer">

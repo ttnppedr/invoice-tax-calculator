@@ -11,12 +11,13 @@ import {
   setLookupStatus,
   setTaxType,
 } from './invoice-state.js';
+import { clientRectToLocal, createEnlargeView } from './enlarge-view.js';
 import { formatPeriod } from './period.js';
 import { parseTwd } from './tax.js';
+import './enlarge.css';
 import './style.css';
 
 const HINTS = {
-  idle: '先填「總計」＝含稅；先填「銷售額合計」＝未稅。',
   sales: '以「銷售額合計」為準（未稅）：營業稅＝四捨五入(銷售額 × 5%)。',
   total: '以「總計」為準（含稅）：營業稅＝四捨五入(總計 × 5 ÷ 105)。',
   overflow: '金額超過中文大寫可顯示範圍（至億元）。',
@@ -52,6 +53,8 @@ const els = {
   gridWrap: document.querySelector('.invoice-grid-wrap'),
   voidSvg: document.querySelector('.void-stroke'),
   btnLookupIcon: document.querySelector('#btn-lookup-icon'),
+  btnEnlarge: document.querySelector('#btn-enlarge'),
+  btnEnlargeClose: document.querySelector('#btn-enlarge-close'),
   btnClear: document.querySelector('#btn-clear'),
   dialog: document.querySelector('#lookup-dialog'),
   lookupForm: document.querySelector('#lookup-form'),
@@ -69,6 +72,7 @@ const lookupCache = new Map();
 let lookupController = null;
 let lookupRequestId = 0;
 let lookupTrigger = els.btnLookupIcon;
+let enlargeView = null;
 
 function moneyText(value) {
   return value === null ? '' : String(value);
@@ -88,7 +92,11 @@ function render() {
   renderTaxType();
   renderCapitalAmount();
   renderLookupDialog();
-  requestAnimationFrame(alignVoidStroke);
+  if (enlargeView) {
+    enlargeView.relayout();
+  } else {
+    requestAnimationFrame(alignVoidStroke);
+  }
 }
 
 function setLine(el, x1, y1, x2, y2) {
@@ -107,12 +115,13 @@ function alignVoidStroke() {
   const cells = [...document.querySelectorAll('.void-row')].map((row) => row.cells[3]).filter(Boolean);
   if (!main || ticks.length < 2 || cells.length === 0) return;
   const wrapRect = wrap.getBoundingClientRect();
-  const first = cells[0].getBoundingClientRect();
-  const last = cells[cells.length - 1].getBoundingClientRect();
-  const x1 = first.right - wrapRect.left - 3;
-  const y1 = first.top - wrapRect.top + 3;
-  const x2 = last.left - wrapRect.left + 3;
-  const y2 = last.bottom - wrapRect.top - 3;
+  const layout = { width: wrap.offsetWidth, height: wrap.offsetHeight };
+  const first = clientRectToLocal(cells[0].getBoundingClientRect(), wrapRect, layout);
+  const last = clientRectToLocal(cells[cells.length - 1].getBoundingClientRect(), wrapRect, layout);
+  const x1 = first.right - 3;
+  const y1 = first.top + 3;
+  const x2 = last.left + 3;
+  const y2 = last.bottom - 3;
   setLine(main, x1, y1, x2, y2);
 
   const dx = x2 - x1;
@@ -167,11 +176,14 @@ function renderAmountSource() {
   els.totalOutput.hidden = !fromSales;
   els.salesInput.disabled = fromTotal;
   els.totalInput.disabled = fromSales;
+  let hint = '';
   if (state.amountError === 'overflow') {
-    els.hint.textContent = HINTS.overflow;
-    return;
+    hint = HINTS.overflow;
+  } else if (HINTS[state.amountSource]) {
+    hint = HINTS[state.amountSource];
   }
-  els.hint.textContent = HINTS[state.amountSource];
+  els.hint.textContent = hint;
+  els.hint.hidden = !hint;
 }
 
 function renderInvoiceAmounts() {
@@ -317,8 +329,19 @@ function closeLookupDialog() {
 }
 
 function init() {
+  enlargeView = createEnlargeView({
+    root: document.documentElement,
+    invoice: els.invoice,
+    stage: document.querySelector('.invoice-scroll'),
+    scaleHost: document.querySelector('#invoice-scale'),
+    toggleButton: els.btnEnlarge,
+    closeButton: els.btnEnlargeClose,
+    isBlockingOverlayOpen: () => els.dialog.open,
+    onLayoutChange: () => requestAnimationFrame(alignVoidStroke),
+    isInputFocused: () => document.activeElement === els.salesInput || document.activeElement === els.totalInput,
+  });
+  enlargeView.init();
   render();
-  window.addEventListener('resize', alignVoidStroke);
 
   els.salesInput.addEventListener('input', () => {
     els.salesInput.value = digitsOnly(els.salesInput.value, 15);

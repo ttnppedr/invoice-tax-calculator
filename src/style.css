@@ -7,6 +7,7 @@
   --danger: #8f2d28;
   --invoice-paper: #fbfaf4;
   --invoice-min-width: 804px;
+  --chrome-gap: 1.4rem;
   --serif: "DFKai-SB", "BiauKai", "Kaiti TC", "Noto Serif TC", "Songti TC", serif;
   --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   --hand: "Iansui", "Yuji Mai", "Kaiti TC", "DFKai-SB", cursive;
@@ -121,11 +122,12 @@ h1 {
 }
 
 .hint {
-  margin: 0.85rem 0;
+  margin: 0.85rem 0 0;
 }
 
 .invoice-scroll {
   overflow-x: auto;
+  margin-top: var(--chrome-gap);
 }
 
 .invoice {
@@ -605,7 +607,7 @@ output.money[hidden] {
   display: flex;
   flex-direction: column;
   gap: 0.2em;
-  margin: 1.4rem 0 0;
+  margin: var(--chrome-gap) 0 0;
   font-size: 0.86rem;
   color: var(--muted);
 }
@@ -685,6 +687,35 @@ input:focus,
 .tax-mark:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: -2px;
+}
+
+@media (max-width: 64rem) {
+  .app {
+    width: calc(100% - 1rem);
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-bottom: max(3rem, env(safe-area-inset-bottom));
+  }
+
+  .btn {
+    min-height: 2.25rem;
+  }
+
+  .icon-btn {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+
+  dialog {
+    width: min(32rem, calc(100% - 1rem));
+    max-height: 90dvh;
+    padding-bottom: max(1.15rem, env(safe-area-inset-bottom));
+  }
+
+  #lookup-query,
+  #btn-lookup-submit {
+    min-height: 2.25rem;
+  }
 }
 
 @media print {
