@@ -49,7 +49,8 @@ const els = {
   taxOutput: document.querySelector('#tax-output'),
   taxMarks: [...document.querySelectorAll('.tax-mark')],
   capitalBoxes: document.querySelector('#capital-boxes'),
-  btnLookup: document.querySelector('#btn-lookup'),
+  gridWrap: document.querySelector('.invoice-grid-wrap'),
+  voidSvg: document.querySelector('.void-stroke'),
   btnLookupIcon: document.querySelector('#btn-lookup-icon'),
   btnClear: document.querySelector('#btn-clear'),
   dialog: document.querySelector('#lookup-dialog'),
@@ -67,7 +68,7 @@ let state = createInvoiceState();
 const lookupCache = new Map();
 let lookupController = null;
 let lookupRequestId = 0;
-let lookupTrigger = els.btnLookup;
+let lookupTrigger = els.btnLookupIcon;
 
 function moneyText(value) {
   return value === null ? '' : String(value);
@@ -87,6 +88,51 @@ function render() {
   renderTaxType();
   renderCapitalAmount();
   renderLookupDialog();
+  requestAnimationFrame(alignVoidStroke);
+}
+
+function setLine(el, x1, y1, x2, y2) {
+  el.setAttribute('x1', String(x1));
+  el.setAttribute('y1', String(y1));
+  el.setAttribute('x2', String(x2));
+  el.setAttribute('y2', String(y2));
+}
+
+function alignVoidStroke() {
+  const svg = els.voidSvg;
+  const wrap = els.gridWrap;
+  if (!svg || !wrap) return;
+  const main = svg.querySelector('.void-stroke__main');
+  const ticks = [...svg.querySelectorAll('.void-stroke__tick')];
+  const cells = [...document.querySelectorAll('.void-row')].map((row) => row.cells[3]).filter(Boolean);
+  if (!main || ticks.length < 2 || cells.length === 0) return;
+  const wrapRect = wrap.getBoundingClientRect();
+  const first = cells[0].getBoundingClientRect();
+  const last = cells[cells.length - 1].getBoundingClientRect();
+  const x1 = first.right - wrapRect.left - 3;
+  const y1 = first.top - wrapRect.top + 3;
+  const x2 = last.left - wrapRect.left + 3;
+  const y2 = last.bottom - wrapRect.top - 3;
+  setLine(main, x1, y1, x2, y2);
+
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy);
+  if (len === 0) return;
+  const tx = dx / len;
+  const ty = dy / len;
+  const px = -ty;
+  const py = tx;
+  const midX = (x1 + x2) / 2;
+  const midY = (y1 + y2) / 2;
+  const halfTick = 6;
+  const halfGap = 3.2;
+  ticks.forEach((tick, i) => {
+    const side = i === 0 ? -1 : 1;
+    const cx = midX + tx * halfGap * side;
+    const cy = midY + ty * halfGap * side;
+    setLine(tick, cx - px * halfTick, cy - py * halfTick, cx + px * halfTick, cy + py * halfTick);
+  });
 }
 
 function renderPeriod() {
@@ -101,6 +147,7 @@ function renderDate() {
 
 function renderBuyer() {
   els.buyerName.value = state.buyer.name;
+  els.invoice.classList.toggle('has-buyer', Boolean(state.buyer.taxId));
   const digits = state.buyer.taxId.padEnd(8).slice(0, 8);
   els.taxIdBoxes.replaceChildren(
     ...[...digits].map((ch) => {
@@ -144,10 +191,11 @@ function renderInvoiceAmounts() {
 }
 
 function renderTaxType() {
+  const hasAmount = state.invoice.sales !== null || state.invoice.total !== null;
   for (const btn of els.taxMarks) {
     const on = btn.dataset.tax === state.taxType;
     btn.setAttribute('aria-pressed', String(on));
-    btn.textContent = on ? '✓' : '';
+    btn.textContent = hasAmount && on ? '✓' : '';
   }
 }
 
@@ -163,7 +211,9 @@ function renderCapitalAmount() {
       const glyph = document.createElement('span');
       glyph.className = 'glyph';
       glyph.textContent = place.glyph;
-      li.append(label, glyph);
+      if (place.glyph) li.className = 'has-value';
+      else if (amount !== null) li.className = 'is-void';
+      li.append(glyph, label);
       return li;
     }),
   );
@@ -268,6 +318,7 @@ function closeLookupDialog() {
 
 function init() {
   render();
+  window.addEventListener('resize', alignVoidStroke);
 
   els.salesInput.addEventListener('input', () => {
     els.salesInput.value = digitsOnly(els.salesInput.value, 15);
@@ -290,7 +341,6 @@ function init() {
     els.salesInput.focus();
   });
 
-  els.btnLookup.addEventListener('click', () => openLookupDialog(els.btnLookup));
   els.btnLookupIcon.addEventListener('click', () => openLookupDialog(els.btnLookupIcon));
   els.btnLookupClose.addEventListener('click', closeLookupDialog);
 

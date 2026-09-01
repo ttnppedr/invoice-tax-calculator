@@ -25,7 +25,6 @@
           <p class="lede">填寫參考 · 非正式發票 · 營業稅 5%</p>
         </div>
         <div class="tool-header__actions">
-          <button type="button" class="btn" id="btn-lookup">插入統編</button>
           <button type="button" class="btn btn--danger" id="btn-clear">清除重填</button>
         </div>
       </header>
@@ -47,15 +46,20 @@
               <output id="buyer-name" class="buyer-name" aria-labelledby="buyer-name-label"></output>
             </div>
             <div class="buyer-line buyer-line--id">
-              <span class="buyer-label" id="buyer-tax-id-label">統一編號：</span>
-              <div class="tax-id">
-                <ol class="tax-id__boxes" id="tax-id-boxes" aria-labelledby="buyer-tax-id-label"></ol>
-                <button type="button" class="icon-btn" id="btn-lookup-icon" aria-label="搜尋統編">
-                  <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
-                    <circle cx="6.5" cy="6.5" r="4.5" fill="none" stroke="currentColor" stroke-width="1.8" />
-                    <line x1="10" y1="10" x2="14.4" y2="14.4" stroke="currentColor" stroke-width="1.8" />
-                  </svg>
-                </button>
+              <div class="buyer-id-group">
+                <span class="buyer-label" id="buyer-tax-id-label">統一編號：</span>
+                <div class="tax-id">
+                  <ol class="tax-id__boxes" id="tax-id-boxes" aria-labelledby="buyer-tax-id-label"></ol>
+                  <span class="lookup-wrap">
+                    <button type="button" class="icon-btn" id="btn-lookup-icon" aria-label="搜尋統編，帶入買受人名稱" aria-describedby="lookup-tip">
+                      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
+                        <circle cx="6.5" cy="6.5" r="4.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+                        <line x1="10" y1="10" x2="14.4" y2="14.4" stroke="currentColor" stroke-width="1.8" />
+                      </svg>
+                    </button>
+                    <span class="callout callout--lookup" id="lookup-tip">點此查詢統編，帶入買受人名稱</span>
+                  </span>
+                </div>
               </div>
               <div class="invoice-date">
                 <span>中 華 民 國</span>
@@ -70,6 +74,7 @@
             <p class="buyer-line"><span class="buyer-label">地　　址：</span></p>
           </div>
 
+          <div class="invoice-grid-wrap">
           <table class="invoice-grid">
             <colgroup>
               <col class="col-name" />
@@ -88,11 +93,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr class="item-row">
                 <td></td>
                 <td></td>
                 <td></td>
-                <td><output id="line-amount"></output></td>
+                <td class="hl-cell"><output id="line-amount"></output></td>
                 <td rowspan="2"></td>
               </tr>
               <tr class="void-row">
@@ -113,7 +118,7 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td rowspan="6" class="stamp-cell"></td>
+                <td rowspan="6" class="stamp-cell"><span class="stamp-placeholder">（發票章）</span></td>
               </tr>
               <tr class="void-row">
                 <td></td>
@@ -141,7 +146,7 @@
                     </tr>
                     <tr>
                       <td>
-                        <button type="button" class="tax-mark" data-tax="taxable" aria-pressed="true">✓</button>
+                        <button type="button" class="tax-mark" data-tax="taxable" aria-pressed="true"></button>
                       </td>
                       <td>
                         <button type="button" class="tax-mark" data-tax="zero" aria-pressed="false"></button>
@@ -152,7 +157,7 @@
                     </tr>
                   </table>
                 </td>
-                <td><output id="tax-output" class="money"></output></td>
+                <td class="hl-cell"><output id="tax-output" class="money"></output></td>
               </tr>
               <tr>
                 <td colspan="3" class="spread-label">總計</td>
@@ -173,6 +178,12 @@
               </tr>
             </tbody>
           </table>
+          <svg class="void-stroke" aria-hidden="true">
+            <line class="void-stroke__main" />
+            <line class="void-stroke__tick" />
+            <line class="void-stroke__tick" />
+          </svg>
+          </div>
 
           <footer class="copy-footer">
             <span>※應稅、零稅率、免稅之銷售額應分別開立統一發票，並應於各該欄打「✓」。</span>
@@ -187,8 +198,8 @@
           <li>客戶給的是<strong>含稅</strong>金額：先填「總計」，銷售額與營業稅會依 總計 × 5 ÷ 105 四捨五入算出。</li>
           <li>報價是<strong>未稅</strong>：先填「銷售額合計」，營業稅＝銷售額 × 5% 四捨五入，總計＝銷售額＋稅。</li>
           <li>應稅、零稅率、免稅應分開開立；零稅率與免稅的營業稅為 0，總計等於銷售額。</li>
-          <li>「插入統編」以財政部公開稅籍資料帶入買受人名稱與統編；發票上的名稱、統編與日期不可改。</li>
-          <li>畫面是內頁式紙底加上框線表格，非正式發票，請對照紙本格子抄寫。</li>
+          <li>統一編號旁的搜尋可查財政部公開稅籍資料，帶入買受人名稱與統編；發票上的名稱、統編與日期不可改。</li>
+          <li>畫面是框線表格試算草稿，非正式發票，請對照紙本格子抄寫。</li>
         </ul>
         <p class="disclaimer">
           本畫面為試算草稿，非正式統一發票，不含可用字軌號碼，亦不可列印作為憑證。僅供參考，請自行核對。統編資料來源：財政部財政資訊中心「全國營業（稅籍）登記資料集」，依
