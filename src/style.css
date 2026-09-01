@@ -8,6 +8,7 @@
   --invoice-paper: #fbfaf4;
   --serif: "DFKai-SB", "BiauKai", "Kaiti TC", "Noto Serif TC", "Songti TC", serif;
   --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --hand: "Iansui", "Yuji Mai", "Kaiti TC", "DFKai-SB", cursive;
 }
 
 *,
@@ -184,6 +185,18 @@ h1 {
 .buyer-label {
   font-weight: 700;
   white-space: nowrap;
+}
+
+.buyer-name,
+.tax-id__boxes li,
+.num,
+.money,
+#line-amount,
+.tax-mark,
+.stamp-placeholder,
+.capital__boxes .glyph {
+  font-family: var(--hand);
+  font-weight: 400;
 }
 
 .buyer-name {
@@ -375,7 +388,8 @@ h1 {
   border: 0;
   background: transparent;
   color: inherit;
-  font: inherit;
+  font-family: var(--hand);
+  font-size: 1.05rem;
   text-align: right;
   padding: 0 0.4rem;
   font-variant-numeric: tabular-nums;
@@ -396,20 +410,20 @@ h1 {
 
 .callout {
   position: absolute;
-  left: calc(100% + 0.55rem);
+  left: calc(100% + 0.4rem);
   top: 50%;
   transform: translateY(-50%);
-  background: #1f1f1f;
+  background: var(--danger);
   color: #fff;
+  border: 1px solid var(--danger);
+  border-radius: 4px;
   font-family: var(--sans);
-  font-size: 0.78rem;
-  font-weight: 700;
-  line-height: 1.25;
-  padding: 0.38rem 0.58rem;
-  border-radius: 2px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.3;
+  padding: 0.32rem 0.7rem;
   white-space: nowrap;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.22);
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -420,23 +434,21 @@ h1 {
   top: 50%;
   transform: translateY(-50%);
   border: 5px solid transparent;
-  border-right-color: #1f1f1f;
+  border-right-color: var(--danger);
 }
 
 .callout--lookup {
-  left: 50%;
-  top: calc(100% + 0.48rem);
-  transform: translateX(-50%);
+  left: calc(100% + 0.4rem);
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-.callout--lookup::before {
-  right: auto;
-  left: 50%;
-  top: auto;
-  bottom: 100%;
-  transform: translateX(-50%);
-  border-right-color: transparent;
-  border-bottom-color: #1f1f1f;
+.callout--sales {
+  top: 42%;
+}
+
+.callout--total {
+  top: 58%;
 }
 
 .invoice.has-amount .money-cell .callout,
@@ -568,8 +580,8 @@ output.money[hidden] {
 }
 
 .capital__boxes .glyph {
-  font-size: 1.45rem;
-  font-weight: 700;
+  font-size: 1.55rem;
+  font-weight: 400;
   color: var(--mark-blue);
   line-height: 1;
 }
