@@ -68,7 +68,6 @@ h1 {
 
 .lede,
 .hint,
-.notes,
 .disclaimer {
   line-height: 1.65;
 }
@@ -615,25 +614,23 @@ output.money[hidden] {
   white-space: nowrap;
 }
 
-.notes {
-  margin-top: 1.4rem;
+.disclaimer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  margin: 1.4rem 0 0;
+  font-size: 0.86rem;
   color: var(--muted);
 }
 
-.notes h2 {
-  margin: 0 0 0.4rem;
-  font-size: 1rem;
-  color: var(--ink);
+.disclaimer__line {
+  display: block;
 }
 
-.notes ul {
-  margin: 0;
-  padding-left: 1.15rem;
-}
-
-.disclaimer {
-  margin: 0.9rem 0 0;
-  font-size: 0.86rem;
+.disclaimer__mark {
+  color: var(--danger);
+  margin-right: 0.15em;
+  font-weight: 700;
 }
 
 .disclaimer a {
