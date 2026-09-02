@@ -49,6 +49,10 @@ html.enlarge-mode .callout {
   display: none;
 }
 
+html.enlarge-mode .supporting-content {
+  display: none;
+}
+
 html.enlarge-mode .invoice-scroll {
   position: absolute;
   inset: 0;

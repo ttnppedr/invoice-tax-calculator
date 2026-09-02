@@ -622,8 +622,95 @@ output.money[hidden] {
   font-weight: 700;
 }
 
-.disclaimer a {
+.disclaimer a,
+.supporting-content a {
   color: inherit;
+}
+
+.disclaimer a:focus-visible,
+.supporting-content a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.supporting-content {
+  max-width: 38rem;
+  margin: var(--chrome-gap) 0 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.supporting-content h2 {
+  margin: 1.55rem 0 0.5rem;
+  font-size: 1.12rem;
+  font-weight: 700;
+}
+
+.supporting-content h2:first-child {
+  margin-top: 0;
+}
+
+.supporting-content p,
+.supporting-content ul {
+  margin: 0 0 0.7rem;
+}
+
+.supporting-content ul {
+  padding-left: 1.2rem;
+}
+
+.supporting-content li + li {
+  margin-top: 0.35rem;
+}
+
+.formula-block {
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--invoice-paper);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+.formula-block p {
+  margin: 0 0 0.4rem;
+}
+
+.formula-block p:last-child {
+  margin-bottom: 0;
+}
+
+.formula-block .formula {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.supporting-content details {
+  margin: 0 0 0.45rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.supporting-content details[open] {
+  padding-bottom: 0.65rem;
+}
+
+.supporting-content summary {
+  cursor: pointer;
+  font-weight: 500;
+  padding: 0.55rem 0;
+}
+
+.supporting-content summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.supporting-content details p {
+  margin: 0;
+  color: var(--muted);
 }
 
 dialog {
@@ -715,6 +802,19 @@ input:focus,
   #lookup-query,
   #btn-lookup-submit {
     min-height: 2.25rem;
+  }
+
+  .supporting-content {
+    max-width: none;
+    font-size: 0.92rem;
+  }
+
+  .supporting-content h2 {
+    font-size: 1.06rem;
+  }
+
+  .formula-block {
+    padding: 0.65rem 0.75rem;
   }
 }
 

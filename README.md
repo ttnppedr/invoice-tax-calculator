@@ -59,4 +59,16 @@ npm run preview
 npm test
 ```
 
-涵蓋稅額四捨五入、含稅／未稅互算、統編檢查碼、金額來源狀態，以及中文大寫與期別。
+涵蓋稅額四捨五入、含稅／未稅互算、統編檢查碼、金額來源狀態、中文大寫與期別，以及 SEO 標記。
+
+## 正式網址與搜尋收錄
+
+正式網址為 [`https://invoice.ii-wa.com/`](https://invoice.ii-wa.com/)。`public/robots.txt`、`public/sitemap.xml`、`public/og-image.png` 會隨 Vite 靜態建置原樣複製到 `dist/`。
+
+SEO 檢查：
+
+```bash
+npm test
+```
+
+部署時請讓正式網址 `/` 回傳 200，HTTP 與 `/index.html` 永久轉到 `https://invoice.ii-wa.com/`，未知路徑回傳 404，且不要送出 `X-Robots-Tag: noindex`。上線後到 Google Search Console 驗證網站並提交 sitemap。不保證會出現搜尋複合結果或 AI Overview。
