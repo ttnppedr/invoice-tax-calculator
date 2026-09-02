@@ -20,7 +20,8 @@ html.enlarge-mode .btn-enlarge-close {
   align-items: center;
 }
 
-.enlarge-prompt {
+.enlarge-prompt,
+.enlarge-tip {
   display: none;
 }
 
@@ -42,6 +43,28 @@ html.enlarge-mode .app {
   padding: 0;
 }
 
+/*
+  iPhone Safari 沒有元素 Fullscreen API。讓文件比「網址列展開時」的視窗高出網址列的高度，
+  使用者上滑就會觸發 Safari 收合網址列與分頁列；收合後 100dvh 長到 100lvh，剛好填滿。
+  .app 改成 fixed，避免捲動時內容跟著位移。
+*/
+html.enlarge-mode.enlarge-collapse-bars {
+  height: auto;
+  overflow: hidden auto;
+}
+
+html.enlarge-mode.enlarge-collapse-bars body {
+  height: 100vh;
+  height: 100lvh;
+  overflow: visible;
+}
+
+html.enlarge-mode.enlarge-collapse-bars .app {
+  position: fixed;
+  inset: 0;
+  height: auto;
+}
+
 html.enlarge-mode .tool-header__titles,
 html.enlarge-mode .hint,
 html.enlarge-mode .disclaimer,
@@ -56,6 +79,8 @@ html.enlarge-mode .supporting-content {
 html.enlarge-mode .invoice-scroll {
   position: absolute;
   inset: 0;
+  inset: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
   z-index: 1;
   margin: 0;
   overflow: hidden;
@@ -121,10 +146,28 @@ html.enlarge-mode .tool-header__actions {
   }
 }
 
+html.enlarge-mode .enlarge-tip:not([hidden]) {
+  display: block;
+  position: fixed;
+  left: max(0.5rem, env(safe-area-inset-left));
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
+  z-index: 10;
+  margin: 0;
+  max-width: min(24rem, calc(100vw - 1rem));
+  padding: 0.35rem 0.55rem;
+  border-radius: 6px;
+  background: rgb(30 28 20 / 0.82);
+  color: #f6edd8;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
 @media print {
   .btn-enlarge,
   .btn-enlarge-close,
-  .enlarge-prompt {
+  .enlarge-prompt,
+  .enlarge-tip {
     display: none !important;
   }
 }

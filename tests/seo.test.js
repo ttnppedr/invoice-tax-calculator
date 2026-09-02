@@ -62,6 +62,28 @@ test('單一 title、h1 與 canonical', () => {
   assert.match(html, /<link rel="canonical" href="https:\/\/invoice\.ii-wa\.com\/" \/>/);
 });
 
+test('可加入主畫面：manifest、apple-touch-icon 與 iOS standalone meta 齊備', () => {
+  assert.match(html, /<link rel="manifest" href="\/manifest\.webmanifest" \/>/);
+  assert.match(html, /<link rel="apple-touch-icon" href="\/apple-touch-icon\.png" \/>/);
+  assert.equal(metaContent(html, 'apple-mobile-web-app-capable'), 'yes');
+  assert.equal(metaContent(html, 'mobile-web-app-capable'), 'yes');
+  assert.equal(metaContent(html, 'apple-mobile-web-app-status-bar-style'), 'black-translucent');
+  assert.ok(metaContent(html, 'apple-mobile-web-app-title').length > 0);
+
+  const manifest = JSON.parse(readFileSync(path.join(root, 'public/manifest.webmanifest'), 'utf8'));
+  assert.equal(manifest.display, 'standalone');
+  assert.equal(manifest.start_url, '/');
+  assert.equal(manifest.lang, 'zh-Hant-TW');
+  for (const icon of manifest.icons) {
+    const file = readFileSync(path.join(root, 'public', icon.src));
+    assert.equal(file.readUInt32BE(16), Number(icon.sizes.split('x')[0]), `${icon.src} 寬度`);
+    assert.equal(file.readUInt32BE(20), Number(icon.sizes.split('x')[1]), `${icon.src} 高度`);
+  }
+  const touchIcon = readFileSync(path.join(root, 'public/apple-touch-icon.png'));
+  assert.equal(touchIcon.readUInt32BE(16), 180);
+  assert.equal(touchIcon.readUInt32BE(20), 180);
+});
+
 test('title 為核准字串，description 與 robots 齊備且無 keywords', () => {
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1];
   assert.equal(title, TITLE);

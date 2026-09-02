@@ -5,8 +5,34 @@ import {
   computeStretchScale,
   computeUniformScale,
   isKeyboardResize,
+  isStandaloneDisplay,
+  pickFullscreenStrategy,
   planEnlargeLayout,
 } from '../src/enlarge-view.js';
+
+test('全螢幕策略：主畫面開啟優先，其次 Fullscreen API，iPhone Safari 退回收合網址列', () => {
+  assert.equal(pickFullscreenStrategy({ fullscreenSupported: false, standalone: true }), 'standalone');
+  assert.equal(pickFullscreenStrategy({ fullscreenSupported: true, standalone: true }), 'standalone');
+  assert.equal(pickFullscreenStrategy({ fullscreenSupported: true, standalone: false }), 'fullscreen');
+  assert.equal(pickFullscreenStrategy({ fullscreenSupported: false, standalone: false }), 'collapse-bars');
+});
+
+test('偵測主畫面模式：iOS navigator.standalone 或 display-mode', () => {
+  const mm = (matches) => () => ({ matches });
+  assert.equal(isStandaloneDisplay({ navigator: { standalone: true }, matchMedia: mm(false) }), true);
+  assert.equal(isStandaloneDisplay({ navigator: { standalone: false }, matchMedia: mm(true) }), true);
+  assert.equal(isStandaloneDisplay({ navigator: {}, matchMedia: mm(false) }), false);
+  assert.equal(isStandaloneDisplay({}), false);
+  assert.equal(
+    isStandaloneDisplay({
+      navigator: {},
+      matchMedia: () => {
+        throw new Error('boom');
+      },
+    }),
+    false,
+  );
+});
 
 test('可用空間或紙張尺寸無效時維持 1 倍', () => {
   assert.equal(computeUniformScale({ availWidth: 0, availHeight: 400, contentWidth: 804, contentHeight: 574 }), 1);

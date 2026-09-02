@@ -393,6 +393,7 @@ function init() {
     scaleHost: document.querySelector('#invoice-scale'),
     toggleButton: els.btnEnlarge,
     closeButton: els.btnEnlargeClose,
+    tipElement: document.querySelector('#enlarge-tip'),
     isBlockingOverlayOpen: () => els.dialog.open,
     onLayoutChange: () => requestAnimationFrame(alignVoidStroke),
     isInputFocused: () => document.activeElement === els.salesInput || document.activeElement === els.totalInput,

@@ -867,6 +867,7 @@ input:focus,
 @media (max-width: 64rem) {
   .app {
     width: calc(100% - 1rem);
+    padding-top: max(1.25rem, env(safe-area-inset-top));
     padding-left: max(0px, env(safe-area-inset-left));
     padding-right: max(0px, env(safe-area-inset-right));
     padding-bottom: max(3rem, env(safe-area-inset-bottom));

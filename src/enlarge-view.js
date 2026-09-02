@@ -78,6 +78,50 @@ function defaultGetViewport() {
   };
 }
 
+export const BROWSER_BAR_TIP_MS = 8000;
+
+/**
+ * 決定全螢幕對照要用哪種方式收掉瀏覽器 UI。
+ * - fullscreen：瀏覽器支援 Fullscreen API（桌機、iPad、Android）。
+ * - standalone：已從主畫面開啟（PWA），本來就沒有網址列。
+ * - collapse-bars：iPhone Safari 沒有元素全螢幕，只能讓頁面可捲動，靠使用者上滑收合網址列。
+ */
+export function pickFullscreenStrategy({ fullscreenSupported, standalone }) {
+  if (standalone) return 'standalone';
+  if (fullscreenSupported) return 'fullscreen';
+  return 'collapse-bars';
+}
+
+export function isStandaloneDisplay({ navigator: nav, matchMedia: mm } = {}) {
+  if (nav?.standalone === true) return true;
+  if (typeof mm !== 'function') return false;
+  try {
+    return Boolean(mm('(display-mode: standalone)').matches || mm('(display-mode: fullscreen)').matches);
+  } catch {
+    return false;
+  }
+}
+
+function defaultIsStandalone() {
+  return isStandaloneDisplay({
+    navigator: globalThis.navigator,
+    matchMedia: typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia.bind(window) : undefined,
+  });
+}
+
+function defaultFullscreen(doc = globalThis.document) {
+  if (!doc) return { supported: false, current: () => null };
+  const el = doc.documentElement;
+  const request = el?.requestFullscreen ?? el?.webkitRequestFullscreen;
+  const exit = doc.exitFullscreen ?? doc.webkitExitFullscreen;
+  return {
+    supported: typeof request === 'function' && typeof exit === 'function',
+    current: () => doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null,
+    request: () => Promise.resolve(request.call(el, { navigationUI: 'hide' })),
+    exit: () => Promise.resolve(exit.call(doc)),
+  };
+}
+
 export function createEnlargeView({
   root,
   invoice,
@@ -91,12 +135,17 @@ export function createEnlargeView({
   matchMedia: matchMediaFn = (query) => window.matchMedia(query),
   requestAnimationFrame: rafFn = (callback) => window.requestAnimationFrame(callback),
   isInputFocused = () => Boolean(document.activeElement?.matches?.('input, textarea')),
+  fullscreen = defaultFullscreen(),
+  isStandalone = defaultIsStandalone,
+  tipElement = null,
+  tipDurationMs = BROWSER_BAR_TIP_MS,
 } = {}) {
   let active = false;
   let scaleX = 1;
   let scaleY = 1;
   let rafId = 0;
   let settleId = 0;
+  let tipId = 0;
   let resizeObserver = null;
   let landscapeMq = null;
   const listeners = [];
@@ -173,10 +222,57 @@ export function createEnlargeView({
     onLayoutChange();
   }
 
+  function requestFullscreen() {
+    if (!fullscreen?.supported || fullscreen.current()) return;
+    try {
+      fullscreen.request().catch(() => {});
+    } catch {
+      // 瀏覽器拒絕時仍維持頁內放大。
+    }
+  }
+
+  function leaveFullscreen() {
+    if (!fullscreen?.supported || !fullscreen.current()) return;
+    try {
+      fullscreen.exit().catch(() => {});
+    } catch {
+      // ignore
+    }
+  }
+
+  function hideTip() {
+    window.clearTimeout(tipId);
+    tipId = 0;
+    if (tipElement) tipElement.hidden = true;
+  }
+
+  function showTip() {
+    if (!tipElement) return;
+    tipElement.hidden = false;
+    window.clearTimeout(tipId);
+    tipId = window.setTimeout(hideTip, tipDurationMs);
+  }
+
+  function currentStrategy() {
+    return pickFullscreenStrategy({
+      fullscreenSupported: Boolean(fullscreen?.supported),
+      standalone: Boolean(isStandalone()),
+    });
+  }
+
   function enter() {
     if (active) return;
     active = true;
     root?.classList.add('enlarge-mode');
+    const strategy = currentStrategy();
+    root?.classList.toggle('enlarge-collapse-bars', strategy === 'collapse-bars');
+    if (strategy === 'fullscreen') {
+      requestFullscreen();
+    } else if (strategy === 'collapse-bars') {
+      // iPhone Safari：頁面留出網址列高度可捲動，使用者上滑即可收合網址列。
+      window.scrollTo?.(0, 0);
+      showTip();
+    }
     closeButton?.focus();
     scheduleApply();
   }
@@ -184,7 +280,10 @@ export function createEnlargeView({
   function exit() {
     if (!active) return;
     active = false;
+    leaveFullscreen();
+    hideTip();
     root?.classList.remove('enlarge-mode');
+    root?.classList.remove('enlarge-collapse-bars');
     root?.classList.remove('is-invoice-editing');
     setScaleVars(1, 1);
     scaleX = 1;
@@ -193,6 +292,14 @@ export function createEnlargeView({
     toggleButton?.focus();
     onLayoutChange();
     scheduleApply();
+  }
+
+  function onFullscreenChange() {
+    if (active && fullscreen?.supported && !fullscreen.current()) {
+      exit();
+      return;
+    }
+    onViewportEvent();
   }
 
   function onKeydown(event) {
@@ -229,6 +336,8 @@ export function createEnlargeView({
     listen(window.visualViewport, 'resize', onViewportEvent);
     listen(document, 'focusin', onFocusChange);
     listen(document, 'focusout', onFocusChange);
+    listen(document, 'fullscreenchange', onFullscreenChange);
+    listen(document, 'webkitfullscreenchange', onFullscreenChange);
     if (typeof landscapeMq.addEventListener === 'function') {
       landscapeMq.addEventListener('change', onViewportEvent);
     } else if (typeof landscapeMq.addListener === 'function') {
@@ -257,6 +366,7 @@ export function createEnlargeView({
     resizeObserver?.disconnect();
     resizeObserver = null;
     window.clearTimeout(settleId);
+    window.clearTimeout(tipId);
     if (rafId) window.cancelAnimationFrame(rafId);
   }
 

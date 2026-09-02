@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="發票試算" />
     <title>三聯式統一發票試算｜手開發票含稅未稅與 5% 營業稅計算</title>
     <meta
       name="description"
@@ -174,6 +180,9 @@
       <p class="hint" id="source-hint" role="status" hidden></p>
 
       <p class="enlarge-prompt" id="enlarge-prompt" role="status">請將裝置轉橫向</p>
+      <p class="enlarge-tip" id="enlarge-tip" role="status" hidden>
+        向上滑動可收起網址列；要完全全螢幕，請在 Safari 點「分享」→「加入主畫面」，從主畫面開啟。
+      </p>
 
       <div class="invoice-scroll">
         <div class="invoice-scale" id="invoice-scale">
@@ -354,7 +363,7 @@
           <li>課稅別可選應稅、零稅率或免稅。</li>
           <li>輸入統編可查財政部公開稅籍，帶入買受人名稱。</li>
           <li>總計會自動產生新臺幣中文大寫，方便對照紙本抄寫。</li>
-          <li>手機可全螢幕對照紙本；畫面非正式發票，不可列印憑證。</li>
+          <li>手機可全螢幕對照紙本；iPhone 請在 Safari「分享」→「加入主畫面」，從主畫面開啟即無網址列。畫面非正式發票，不可列印憑證。</li>
         </ul>
 
         <h2>5% 營業稅計算規則</h2>
