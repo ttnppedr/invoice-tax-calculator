@@ -20,7 +20,6 @@ html.enlarge-mode .btn-enlarge-close {
   align-items: center;
 }
 
-.enlarge-prompt,
 .enlarge-tip {
   display: none;
 }
@@ -124,28 +123,6 @@ html.enlarge-mode .tool-header__actions {
   box-shadow: 0 1px 6px rgb(0 0 0 / 0.16);
 }
 
-@media (orientation: portrait) {
-  html.enlarge-mode .enlarge-prompt {
-    display: block;
-    position: fixed;
-    top: max(0.5rem, env(safe-area-inset-top));
-    left: max(0.5rem, env(safe-area-inset-left));
-    z-index: 10;
-    margin: 0;
-    max-width: min(16rem, calc(100vw - 10rem));
-    padding: 0.3rem 0.45rem;
-    border-radius: 6px;
-    background: rgb(244 241 234 / 0.92);
-    box-shadow: 0 1px 6px rgb(0 0 0 / 0.16);
-    color: var(--danger);
-    font-size: 1.5rem;
-    font-weight: 700;
-    line-height: 1.35;
-    text-align: left;
-    pointer-events: none;
-  }
-}
-
 html.enlarge-mode .enlarge-tip:not([hidden]) {
   display: block;
   position: fixed;
@@ -166,7 +143,6 @@ html.enlarge-mode .enlarge-tip:not([hidden]) {
 @media print {
   .btn-enlarge,
   .btn-enlarge-close,
-  .enlarge-prompt,
   .enlarge-tip {
     display: none !important;
   }
