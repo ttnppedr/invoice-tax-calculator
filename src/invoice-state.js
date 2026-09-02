@@ -122,6 +122,21 @@ export function setLookupStatus(state, status, { result = null, message = '' } =
   };
 }
 
+export function selectLookupResult(state, result) {
+  if (!result?.taxId || !result?.name) return state;
+  return {
+    ...state,
+    lookup: {
+      ...state.lookup,
+      open: true,
+      query: result.taxId,
+      status: 'success',
+      result: { taxId: result.taxId, name: result.name },
+      message: '',
+    },
+  };
+}
+
 export function insertLookupResult(state) {
   const result = state.lookup.result;
   if (!result) return closeLookup(state);

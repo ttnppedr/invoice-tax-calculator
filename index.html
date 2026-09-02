@@ -473,6 +473,13 @@
           </table>
         </div>
       </form>
+      <section class="lookup-history" id="lookup-history" hidden>
+        <div class="lookup-history__head">
+          <h3 id="lookup-history-title">過往查詢</h3>
+          <button type="button" class="lookup-history__clear" id="btn-lookup-history-clear">清除紀錄</button>
+        </div>
+        <ul class="lookup-history__list" id="lookup-history-list" aria-labelledby="lookup-history-title"></ul>
+      </section>
     </dialog>
 
     <script type="module" src="/src/main.js"></script>

@@ -6,11 +6,13 @@ import {
   insertLookupResult,
   openLookup,
   resetInvoiceState,
+  selectLookupResult,
   setAmountFrom,
   setLookupQuery,
   setLookupStatus,
   setTaxType,
 } from './invoice-state.js';
+import { clearLookupHistory, loadLookupHistory, rememberLookup } from './lookup-history.js';
 import { clientRectToLocal, createEnlargeView } from './enlarge-view.js';
 import { formatPeriod } from './period.js';
 import { parseTwd } from './tax.js';
@@ -65,14 +67,29 @@ const els = {
   lookupResultName: document.querySelector('#lookup-result-name'),
   btnLookupClose: document.querySelector('#btn-lookup-close'),
   btnLookupInsert: document.querySelector('#btn-lookup-insert'),
+  lookupHistory: document.querySelector('#lookup-history'),
+  lookupHistoryList: document.querySelector('#lookup-history-list'),
+  btnLookupHistoryClear: document.querySelector('#btn-lookup-history-clear'),
 };
 
 let state = createInvoiceState();
 const lookupCache = new Map();
+let lookupHistory = [];
 let lookupController = null;
 let lookupRequestId = 0;
 let lookupTrigger = els.btnLookupIcon;
 let enlargeView = null;
+
+function seedLookupCache(items) {
+  for (const item of items) {
+    lookupCache.set(item.taxId, { taxId: item.taxId, name: item.name });
+  }
+}
+
+function recordLookup(entry) {
+  lookupHistory = rememberLookup(entry);
+  seedLookupCache([entry]);
+}
 
 function moneyText(value) {
   return value === null ? '' : String(value);
@@ -258,6 +275,43 @@ function renderLookupDialog() {
   } else {
     els.lookupStatus.textContent = LOOKUP_MESSAGES[state.lookup.status] ?? '';
   }
+  renderLookupHistory();
+}
+
+function renderLookupHistory() {
+  const empty = lookupHistory.length === 0;
+  els.lookupHistory.hidden = empty;
+  if (empty) {
+    els.lookupHistoryList.replaceChildren();
+    return;
+  }
+  const currentId = state.lookup.result?.taxId || state.lookup.query;
+  els.lookupHistoryList.replaceChildren(
+    ...lookupHistory.map((item) => {
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'lookup-history__item';
+      btn.dataset.taxId = item.taxId;
+      if (item.taxId === currentId) btn.setAttribute('aria-current', 'true');
+      const taxId = document.createElement('span');
+      taxId.className = 'lookup-history__tax-id';
+      taxId.textContent = item.taxId;
+      const name = document.createElement('span');
+      name.className = 'lookup-history__name';
+      name.textContent = item.name;
+      btn.append(taxId, name);
+      btn.setAttribute('aria-label', `使用 ${item.taxId} ${item.name}`);
+      li.append(btn);
+      return li;
+    }),
+  );
+}
+
+function applyHistoryItem(item) {
+  cancelLookup();
+  seedLookupCache([item]);
+  setState(selectLookupResult(state, item));
 }
 
 function digitsOnly(raw, max) {
@@ -278,6 +332,7 @@ function startLookup() {
   const query = state.lookup.query;
   const cached = lookupCache.get(query);
   if (cached) {
+    recordLookup(cached);
     setState(setLookupStatus(state, 'success', { result: cached, message: '' }));
     return;
   }
@@ -300,7 +355,7 @@ function startLookup() {
     .then((result) => {
       if (requestId !== lookupRequestId) return;
       if (result.ok) {
-        lookupCache.set(result.taxId, { taxId: result.taxId, name: result.name });
+        recordLookup({ taxId: result.taxId, name: result.name });
         setState(setLookupStatus(state, 'success', { result, message: '' }));
         return;
       }
@@ -329,6 +384,8 @@ function closeLookupDialog() {
 }
 
 function init() {
+  lookupHistory = loadLookupHistory();
+  seedLookupCache(lookupHistory);
   enlargeView = createEnlargeView({
     root: document.documentElement,
     invoice: els.invoice,
@@ -387,6 +444,18 @@ function init() {
   els.btnLookupInsert.addEventListener('click', () => {
     setState(insertLookupResult(state));
     lookupTrigger?.focus();
+  });
+
+  els.lookupHistoryList.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-tax-id]');
+    if (!btn) return;
+    const item = lookupHistory.find((entry) => entry.taxId === btn.dataset.taxId);
+    if (item) applyHistoryItem(item);
+  });
+
+  els.btnLookupHistoryClear.addEventListener('click', () => {
+    lookupHistory = clearLookupHistory();
+    renderLookupHistory();
   });
 }
 

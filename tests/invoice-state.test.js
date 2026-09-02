@@ -5,6 +5,7 @@ import {
   createInvoiceState,
   insertLookupResult,
   resetInvoiceState,
+  selectLookupResult,
   setAmountFrom,
   setLookupStatus,
   setTaxType,
@@ -75,4 +76,13 @@ test('清除重填建立乾淨初始狀態', () => {
   state = insertLookupResult(state);
   state = resetInvoiceState(NOW);
   assert.deepEqual(state, createInvoiceState(NOW));
+});
+
+test('選擇過往查詢會帶入統編與名稱，並維持對話框開啟', () => {
+  let state = createInvoiceState(NOW);
+  state = selectLookupResult(state, { taxId: '20828393', name: '宏碁股份有限公司' });
+  assert.equal(state.lookup.open, true);
+  assert.equal(state.lookup.query, '20828393');
+  assert.equal(state.lookup.status, 'success');
+  assert.deepEqual(state.lookup.result, { taxId: '20828393', name: '宏碁股份有限公司' });
 });
