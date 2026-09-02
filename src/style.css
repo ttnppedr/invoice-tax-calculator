@@ -252,10 +252,17 @@ h1 {
 
 .invoice-date {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.15rem;
   white-space: nowrap;
   font-weight: 700;
+}
+
+.date-wrap {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  margin-left: 0.2rem;
 }
 
 .num {
@@ -439,8 +446,21 @@ h1 {
 }
 
 .invoice.has-amount .money-cell .callout,
-.invoice.has-buyer .callout--lookup {
+.invoice.has-buyer .callout--lookup,
+.invoice.has-picked-date .callout--date {
   display: none;
+}
+
+.callout--date {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.callout--date::before {
+  left: auto;
+  right: 0.55rem;
+  transform: none;
 }
 
 output.money,
@@ -767,6 +787,27 @@ dialog::backdrop {
   color: var(--muted);
 }
 
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.6rem;
+  min-width: 0;
+}
+
+#invoice-date-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  font: inherit;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--rule);
+}
+
+#btn-date-today {
+  flex: 0 0 auto;
+}
+
 .lookup-result table {
   width: 100%;
   border-collapse: collapse;
@@ -889,13 +930,17 @@ input:focus,
     padding-bottom: max(1.15rem, env(safe-area-inset-bottom));
   }
 
-  .lookup-row {
+  .lookup-row,
+  .date-row {
     flex-direction: column;
     align-items: stretch;
   }
 
   #lookup-query,
-  #btn-lookup-submit {
+  #btn-lookup-submit,
+  #invoice-date-input,
+  #btn-date-today,
+  #btn-date-apply {
     min-height: 2.25rem;
     width: 100%;
   }

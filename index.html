@@ -107,7 +107,8 @@
               "應稅、零稅率、免稅",
               "財政部公開稅籍統編查買受人名稱",
               "新臺幣中文大寫",
-              "手機全螢幕對照紙本"
+              "手機全螢幕對照紙本",
+              "上一期起的發票日期與雙月期別"
             ]
           },
           {
@@ -137,7 +138,7 @@
                 "name": "統編查詢會帶入什麼？會不會存資料？",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "輸入 8 位統一編號後，本工具只送出該統編，查財政部財政資訊中心「全國營業（稅籍）登記資料集」。通過 2023 新版檢查碼後帶入買受人名稱。金額與名稱不會存到本站伺服器。查詢不驗證完整稅務資格，也不回填地址。買受人名稱與發票日期不可手動編輯；日期與期別依裝置今天自動帶入。"
+                  "text": "輸入 8 位統一編號後，本工具只送出該統編，查財政部財政資訊中心「全國營業（稅籍）登記資料集」。通過 2023 新版檢查碼後帶入買受人名稱。金額與名稱不會存到本站伺服器。查詢不驗證完整稅務資格，也不回填地址。買受人名稱不可手動編輯。發票日期預設今天，可選上一期 1 號起至今天的日期，期別依選定日期自動更新。"
                 }
               },
               {
@@ -221,6 +222,17 @@
                 <span>月</span>
                 <output id="date-day" class="num num--md" aria-label="交易日"></output>
                 <span>日</span>
+                <span class="date-wrap">
+                  <button type="button" class="icon-btn" id="btn-date-icon" aria-label="選擇發票日期，期別會跟著更新" aria-describedby="date-tip">
+                    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
+                      <rect x="2" y="3.2" width="12" height="10.3" rx="1" fill="none" stroke="currentColor" stroke-width="1.6" />
+                      <line x1="2" y1="6.6" x2="14" y2="6.6" stroke="currentColor" stroke-width="1.6" />
+                      <line x1="5.4" y1="1.8" x2="5.4" y2="4.6" stroke="currentColor" stroke-width="1.6" />
+                      <line x1="10.6" y1="1.8" x2="10.6" y2="4.6" stroke="currentColor" stroke-width="1.6" />
+                    </svg>
+                  </button>
+                  <span class="callout callout--date" id="date-tip">點此選擇發票日期，期別會跟著更新</span>
+                </span>
               </div>
             </div>
             <p class="buyer-line"><span class="buyer-label">地　　址：</span></p>
@@ -363,6 +375,7 @@
           <li>課稅別可選應稅、零稅率或免稅。</li>
           <li>輸入統編可查財政部公開稅籍，帶入買受人名稱。</li>
           <li>總計會自動產生新臺幣中文大寫，方便對照紙本抄寫。</li>
+          <li>發票日期預設今天，可選上一期 1 號起至今天；選定後期別會自動對應該日期的雙月窗。</li>
           <li>手機可全螢幕對照紙本；iPhone 請在 Safari「分享」→「加入主畫面」，從主畫面開啟即無網址列。畫面非正式發票，不可列印憑證。</li>
         </ul>
 
@@ -395,7 +408,7 @@
         <details>
           <summary>統編查詢會帶入什麼？會不會存資料？</summary>
           <p>
-            輸入 8 位統一編號後，本工具只送出該統編，查財政部財政資訊中心「全國營業（稅籍）登記資料集」。通過 2023 新版檢查碼後帶入買受人名稱。金額與名稱不會存到本站伺服器。查詢不驗證完整稅務資格，也不回填地址。買受人名稱與發票日期不可手動編輯；日期與期別依裝置今天自動帶入。
+            輸入 8 位統一編號後，本工具只送出該統編，查財政部財政資訊中心「全國營業（稅籍）登記資料集」。通過 2023 新版檢查碼後帶入買受人名稱。金額與名稱不會存到本站伺服器。查詢不驗證完整稅務資格，也不回填地址。買受人名稱不可手動編輯。發票日期預設今天，可選上一期 1 號起至今天的日期，期別依選定日期自動更新。
           </p>
         </details>
         <details>
@@ -489,6 +502,21 @@
         </div>
         <ul class="lookup-history__list" id="lookup-history-list" aria-labelledby="lookup-history-title"></ul>
       </section>
+    </dialog>
+
+    <dialog id="date-dialog" aria-labelledby="date-title">
+      <form id="date-form">
+        <header class="dialog-head">
+          <h2 id="date-title">選擇發票日期</h2>
+          <button type="button" class="icon-btn" id="btn-date-close" aria-label="關閉">×</button>
+        </header>
+        <label for="invoice-date-input">發票日期</label>
+        <div class="date-row">
+          <input id="invoice-date-input" type="date" required />
+          <button type="button" class="btn" id="btn-date-today">今天</button>
+        </div>
+        <button type="submit" class="btn btn--primary" id="btn-date-apply">套用</button>
+      </form>
     </dialog>
 
     <script type="module" src="/src/main.js"></script>

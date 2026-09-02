@@ -1,5 +1,5 @@
 import { MAX_CAPITAL_AMOUNT } from './chinese.js';
-import { currentPeriod, toRocYear } from './period.js';
+import { currentPeriod, datePartsFrom, isInvoiceDateAllowed } from './period.js';
 import { computeInvoice } from './tax.js';
 
 const EMPTY_INVOICE = { sales: null, tax: null, total: null };
@@ -39,11 +39,7 @@ export function createInvoiceState(now = new Date()) {
       rocYear: period.rocYear,
       startMonth: period.startMonth,
     },
-    date: {
-      rocYear: toRocYear(now),
-      month: now.getMonth() + 1,
-      day: now.getDate(),
-    },
+    date: datePartsFrom(now),
     buyer: {
       taxId: '',
       name: '',
@@ -86,8 +82,17 @@ export function setPeriod(state, patch) {
   return { ...state, period: { ...state.period, ...patch } };
 }
 
-export function setDate(state, patch) {
-  return { ...state, date: { ...state.date, ...patch } };
+export function setInvoiceDate(state, date, now = new Date()) {
+  if (!isInvoiceDateAllowed(date, now)) return state;
+  const period = currentPeriod(date);
+  return {
+    ...state,
+    date: datePartsFrom(date),
+    period: {
+      rocYear: period.rocYear,
+      startMonth: period.startMonth,
+    },
+  };
 }
 
 export function setBuyer(state, patch) {

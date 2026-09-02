@@ -7,6 +7,7 @@ import {
   resetInvoiceState,
   selectLookupResult,
   setAmountFrom,
+  setInvoiceDate,
   setLookupStatus,
   setTaxType,
 } from '../src/invoice-state.js';
@@ -76,6 +77,25 @@ test('清除重填建立乾淨初始狀態', () => {
   state = insertLookupResult(state);
   state = resetInvoiceState(NOW);
   assert.deepEqual(state, createInvoiceState(NOW));
+});
+
+test('選定發票日期後同步更新民國日期與雙月期別', () => {
+  let state = createInvoiceState(NOW);
+  state = setInvoiceDate(state, new Date(2026, 5, 30), NOW);
+  assert.deepEqual(state.date, { rocYear: 115, month: 6, day: 30 });
+  assert.deepEqual(state.period, { rocYear: 115, startMonth: 5 });
+  const selected = state;
+  assert.equal(setInvoiceDate(selected, new Date(2026, 3, 30), NOW), selected);
+  assert.equal(setInvoiceDate(selected, new Date(2026, 8, 1), NOW), selected);
+});
+
+test('跨年選日會改民國年與十一、十二月期別', () => {
+  const now = new Date(2026, 0, 15);
+  let state = createInvoiceState(now);
+  assert.deepEqual(state.period, { rocYear: 115, startMonth: 1 });
+  state = setInvoiceDate(state, new Date(2025, 10, 20), now);
+  assert.deepEqual(state.date, { rocYear: 114, month: 11, day: 20 });
+  assert.deepEqual(state.period, { rocYear: 114, startMonth: 11 });
 });
 
 test('選擇過往查詢會帶入統編與名稱，並維持對話框開啟', () => {

@@ -8,13 +8,20 @@ import {
   resetInvoiceState,
   selectLookupResult,
   setAmountFrom,
+  setInvoiceDate,
   setLookupQuery,
   setLookupStatus,
   setTaxType,
 } from './invoice-state.js';
 import { clearLookupHistory, loadLookupHistory, rememberLookup } from './lookup-history.js';
 import { clientRectToLocal, createEnlargeView } from './enlarge-view.js';
-import { formatPeriod } from './period.js';
+import {
+  formatIsoDate,
+  formatPeriod,
+  gregorianFromRocParts,
+  invoiceDateBounds,
+  parseIsoDate,
+} from './period.js';
 import { parseTwd } from './tax.js';
 import './enlarge.css';
 import './style.css';
@@ -55,6 +62,12 @@ const els = {
   gridWrap: document.querySelector('.invoice-grid-wrap'),
   voidSvg: document.querySelector('.void-stroke'),
   btnLookupIcon: document.querySelector('#btn-lookup-icon'),
+  btnDateIcon: document.querySelector('#btn-date-icon'),
+  dateDialog: document.querySelector('#date-dialog'),
+  dateForm: document.querySelector('#date-form'),
+  dateInput: document.querySelector('#invoice-date-input'),
+  btnDateClose: document.querySelector('#btn-date-close'),
+  btnDateToday: document.querySelector('#btn-date-today'),
   btnEnlarge: document.querySelector('#btn-enlarge'),
   btnEnlargeClose: document.querySelector('#btn-enlarge-close'),
   btnClear: document.querySelector('#btn-clear'),
@@ -78,6 +91,8 @@ let lookupHistory = [];
 let lookupController = null;
 let lookupRequestId = 0;
 let lookupTrigger = els.btnLookupIcon;
+let dateTrigger = els.btnDateIcon;
+let datePicked = false;
 let enlargeView = null;
 
 function seedLookupCache(items) {
@@ -169,6 +184,7 @@ function renderDate() {
   els.dateYear.textContent = String(state.date.rocYear);
   els.dateMonth.textContent = String(state.date.month);
   els.dateDay.textContent = String(state.date.day);
+  els.invoice.classList.toggle('has-picked-date', datePicked);
 }
 
 function renderBuyer() {
@@ -383,6 +399,42 @@ function closeLookupDialog() {
   lookupTrigger?.focus();
 }
 
+function currentInvoiceDate() {
+  return gregorianFromRocParts(state.date);
+}
+
+function fillDateDialog(selected = currentInvoiceDate()) {
+  const now = new Date();
+  const { min, max } = invoiceDateBounds(now);
+  els.dateInput.min = formatIsoDate(min);
+  els.dateInput.max = formatIsoDate(max);
+  els.dateInput.value = formatIsoDate(selected);
+}
+
+function openDateDialog() {
+  dateTrigger = els.btnDateIcon;
+  fillDateDialog();
+  if (!els.dateDialog.open) els.dateDialog.showModal();
+  els.dateInput.focus();
+}
+
+function closeDateDialog() {
+  if (els.dateDialog.open) els.dateDialog.close();
+  dateTrigger?.focus();
+}
+
+function applyInvoiceDate(date) {
+  const now = new Date();
+  const next = setInvoiceDate(state, date, now);
+  if (next === state) {
+    fillDateDialog(currentInvoiceDate());
+    return false;
+  }
+  datePicked = true;
+  setState(next);
+  return true;
+}
+
 function init() {
   lookupHistory = loadLookupHistory();
   seedLookupCache(lookupHistory);
@@ -394,7 +446,7 @@ function init() {
     toggleButton: els.btnEnlarge,
     closeButton: els.btnEnlargeClose,
     tipElement: document.querySelector('#enlarge-tip'),
-    isBlockingOverlayOpen: () => els.dialog.open,
+    isBlockingOverlayOpen: () => els.dialog.open || els.dateDialog.open,
     onLayoutChange: () => requestAnimationFrame(alignVoidStroke),
     isInputFocused: () => document.activeElement === els.salesInput || document.activeElement === els.totalInput,
   });
@@ -418,6 +470,8 @@ function init() {
 
   els.btnClear.addEventListener('click', () => {
     cancelLookup();
+    datePicked = false;
+    if (els.dateDialog.open) els.dateDialog.close();
     setState(resetInvoiceState());
     els.salesInput.focus();
   });
@@ -457,6 +511,22 @@ function init() {
   els.btnLookupHistoryClear.addEventListener('click', () => {
     lookupHistory = clearLookupHistory();
     renderLookupHistory();
+  });
+
+  els.btnDateIcon.addEventListener('click', openDateDialog);
+  els.btnDateClose.addEventListener('click', closeDateDialog);
+  els.dateDialog.addEventListener('close', () => {
+    dateTrigger?.focus();
+  });
+  els.btnDateToday.addEventListener('click', () => {
+    fillDateDialog(new Date());
+    els.dateInput.focus();
+  });
+  els.dateForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const date = parseIsoDate(els.dateInput.value);
+    if (!date || !applyInvoiceDate(date)) return;
+    closeDateDialog();
   });
 }
 
