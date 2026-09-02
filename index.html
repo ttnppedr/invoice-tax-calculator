@@ -10,6 +10,9 @@
       content="手開發票金額試算：依 5% 營業稅從含稅總計或未稅銷售額互算，可選應稅、零稅率或免稅；查統編帶入買受人名稱，並產生新臺幣中文大寫。非正式發票，僅供填寫參考，不可列印憑證。"
     />
     <link rel="canonical" href="https://invoice.ii-wa.com/" />
+    <link rel="alternate" hreflang="zh-Hant-TW" href="https://invoice.ii-wa.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://invoice.ii-wa.com/" />
+    <meta name="author" content="一蛙有限公司" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="theme-color" content="#f4f1ea" />
     <meta property="og:type" content="website" />
@@ -43,11 +46,19 @@
         "@context": "https://schema.org",
         "@graph": [
           {
+            "@type": "Organization",
+            "@id": "https://ii-wa.com/#organization",
+            "name": "一蛙有限公司",
+            "alternateName": ["II-WA", "ii-wa"],
+            "url": "https://ii-wa.com/"
+          },
+          {
             "@type": "WebSite",
             "@id": "https://invoice.ii-wa.com/#website",
             "url": "https://invoice.ii-wa.com/",
             "name": "三聯式統一發票試算",
             "inLanguage": "zh-Hant-TW",
+            "publisher": { "@id": "https://ii-wa.com/#organization" },
             "description": "手開發票金額試算：依 5% 營業稅從含稅總計或未稅銷售額互算，可選應稅、零稅率或免稅；查統編帶入買受人名稱，並產生新臺幣中文大寫。非正式發票，僅供填寫參考，不可列印憑證。",
             "mainEntity": { "@id": "https://invoice.ii-wa.com/#webpage" }
           },
@@ -58,7 +69,9 @@
             "name": "三聯式統一發票試算｜手開發票含稅未稅與 5% 營業稅計算",
             "inLanguage": "zh-Hant-TW",
             "isPartOf": { "@id": "https://invoice.ii-wa.com/#website" },
+            "about": { "@id": "https://invoice.ii-wa.com/#app" },
             "mainEntity": { "@id": "https://invoice.ii-wa.com/#app" },
+            "publisher": { "@id": "https://ii-wa.com/#organization" },
             "description": "手開發票金額試算：依 5% 營業稅從含稅總計或未稅銷售額互算，可選應稅、零稅率或免稅；查統編帶入買受人名稱，並產生新臺幣中文大寫。非正式發票，僅供填寫參考，不可列印憑證。"
           },
           {
@@ -70,6 +83,7 @@
             "applicationCategory": "FinanceApplication",
             "operatingSystem": "Any",
             "isAccessibleForFree": true,
+            "provider": { "@id": "https://ii-wa.com/#organization" },
             "description": "紙本三聯式統一發票的填寫試算：依 5% 營業稅從含稅總計或未稅銷售額互算，可選應稅、零稅率或免稅；查財政部公開稅籍統編帶入買受人名稱，並產生新臺幣中文大寫。手機可全螢幕對照紙本。非正式發票，不可列印。",
             "featureList": [
               "5% 營業稅",
@@ -78,6 +92,54 @@
               "財政部公開稅籍統編查買受人名稱",
               "新臺幣中文大寫",
               "手機全螢幕對照紙本"
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://invoice.ii-wa.com/#faq",
+            "inLanguage": "zh-Hant-TW",
+            "isPartOf": { "@id": "https://invoice.ii-wa.com/#webpage" },
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "含稅總計怎麼反推未稅銷售額與營業稅？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "應稅且先填總計時，營業稅 = 總計 × 5 ÷ 105，再四捨五入至元；銷售額 = 總計 − 營業稅。例如含稅 105 → 銷售額 100、稅 5。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "未稅銷售額怎麼換成含稅總計？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "應稅且先填銷售額合計時，營業稅 = 銷售額 × 5%，再四捨五入至元；總計 = 銷售額 + 營業稅。例如未稅 100 → 稅 5、總計 105。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "統編查詢會帶入什麼？會不會存資料？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "輸入 8 位統一編號後，本工具只送出該統編，查財政部財政資訊中心「全國營業（稅籍）登記資料集」。通過 2023 新版檢查碼後帶入買受人名稱。金額與名稱不會存到本站伺服器。查詢不驗證完整稅務資格，也不回填地址。買受人名稱與發票日期不可手動編輯；日期與期別依裝置今天自動帶入。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "中文大寫怎麼顯示？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "總計會自動轉成新臺幣中文大寫（壹貳參肆伍陸柒捌玖、拾佰仟萬億），例如 105 → 壹佰零伍元整。中文大寫可顯示至億元；更大金額會顯示溢位提示。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "這是正式發票嗎？可以列印嗎？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "不是。本畫面為試算草稿，非正式統一發票，不含字軌號碼，也不可列印作為憑證。本站非政府機關，亦不隸屬財政部。"
+                }
+              }
             ]
           }
         ]
@@ -340,6 +402,21 @@
           </li>
           <li>
             統編檢查碼依財政部北區國稅局公布之<a href="https://www.ntbna.gov.tw/singlehtml/374fe8c4b18e48c691a6806ac02b9984?cntId=ef1397e709dc43cd8aa4607483849a9d" rel="noreferrer">新版統一編號檢查碼</a>（2023）邏輯。
+          </li>
+        </ul>
+
+        <h2>AI 與資料使用</h2>
+        <ul>
+          <li>
+            本頁公開內容可供搜尋引擎與 AI 答案引擎引用。機器可讀摘要見
+            <a href="https://invoice.ii-wa.com/llms.txt">llms.txt</a>。
+          </li>
+          <li>金額試算在你的瀏覽器完成，不把金額或買受人名稱存到本站伺服器。</li>
+          <li>統編查詢只把你輸入的 8 位統一編號送到財政部公開 API；查不到或服務中斷時，金額試算仍可用。</li>
+          <li>引用本工具時請一併說明：非正式統一發票、不可列印憑證、亦不代表完整稅務資格驗證。</li>
+          <li>
+            本工具由<a href="https://ii-wa.com/">一蛙有限公司</a>提供。聯絡：
+            <a href="mailto:kevin@ii-wa.com">kevin@ii-wa.com</a>。
           </li>
         </ul>
       </section>

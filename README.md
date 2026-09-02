@@ -63,12 +63,18 @@ npm test
 
 ## 正式網址與搜尋收錄
 
-正式網址為 [`https://invoice.ii-wa.com/`](https://invoice.ii-wa.com/)。`public/robots.txt`、`public/sitemap.xml`、`public/og-image.png` 會隨 Vite 靜態建置原樣複製到 `dist/`。
+正式網址為 [`https://invoice.ii-wa.com/`](https://invoice.ii-wa.com/)。`public/robots.txt`、`public/sitemap.xml`、`public/llms.txt`、`public/og-image.png` 會隨 Vite 靜態建置原樣複製到 `dist/`。
 
-SEO 檢查：
+SEO／AEO 檢查：
 
 ```bash
 npm test
 ```
 
-部署時請讓正式網址 `/` 回傳 200，HTTP 與 `/index.html` 永久轉到 `https://invoice.ii-wa.com/`，未知路徑回傳 404，且不要送出 `X-Robots-Tag: noindex`。上線後到 Google Search Console 驗證網站並提交 sitemap。不保證會出現搜尋複合結果或 AI Overview。
+部署到 Cloudflare Pages：
+
+```bash
+npm run deploy
+```
+
+`/` 應回傳 200，`/index.html` 由 `_redirects` 永久轉到 `/`，未知路徑由 `404.html` 回傳 404。HTTP 由 Cloudflare 轉 HTTPS。不要送出 `X-Robots-Tag: noindex`。上線後到 Google Search Console 驗證網站並提交 sitemap。不保證會出現搜尋複合結果或 AI Overview。

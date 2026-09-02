@@ -8,6 +8,9 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(path.join(root, 'index.html'), 'utf8');
 const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
 const sitemap = readFileSync(path.join(root, 'public/sitemap.xml'), 'utf8');
+const llms = readFileSync(path.join(root, 'public/llms.txt'), 'utf8');
+const notFound = readFileSync(path.join(root, 'public/404.html'), 'utf8');
+const redirects = readFileSync(path.join(root, 'public/_redirects'), 'utf8');
 const ogImage = readFileSync(path.join(root, 'public/og-image.png'));
 
 const TITLE = '三聯式統一發票試算｜手開發票含稅未稅與 5% 營業稅計算';
@@ -85,35 +88,51 @@ test('Open Graph 與 Twitter 卡片一致', () => {
   assert.equal(metaContent(html, 'twitter:image'), OG_IMAGE);
 });
 
-test('JSON-LD 為互連的 WebSite、WebPage、WebApplication，且無 FAQ／評分', () => {
+test('JSON-LD 知識圖譜含公司、頁面、應用與可見 FAQ，且無虛假評分', () => {
   const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
   assert.equal(blocks.length, 1);
   const data = JSON.parse(blocks[0][1]);
   assert.ok(Array.isArray(data['@graph']));
   const types = data['@graph'].map((node) => node['@type']);
+  assert.ok(types.includes('Organization'));
   assert.ok(types.includes('WebSite'));
   assert.ok(types.includes('WebPage'));
   assert.ok(types.includes('WebApplication'));
-  assert.ok(!types.includes('FAQPage'));
+  assert.ok(types.includes('FAQPage'));
 
   const byId = Object.fromEntries(data['@graph'].map((node) => [node['@id'], node]));
+  const org = byId['https://ii-wa.com/#organization'];
   const website = byId['https://invoice.ii-wa.com/#website'];
   const webpage = byId['https://invoice.ii-wa.com/#webpage'];
   const app = byId['https://invoice.ii-wa.com/#app'];
+  const faq = byId['https://invoice.ii-wa.com/#faq'];
+  assert.ok(org);
   assert.ok(website);
   assert.ok(webpage);
   assert.ok(app);
+  assert.ok(faq);
   assert.equal(website.inLanguage, 'zh-Hant-TW');
   assert.equal(webpage.inLanguage, 'zh-Hant-TW');
   assert.equal(app.inLanguage, 'zh-Hant-TW');
+  assert.equal(website.publisher['@id'], 'https://ii-wa.com/#organization');
   assert.equal(webpage.isPartOf['@id'], 'https://invoice.ii-wa.com/#website');
   assert.equal(webpage.mainEntity['@id'], 'https://invoice.ii-wa.com/#app');
   assert.equal(website.mainEntity['@id'], 'https://invoice.ii-wa.com/#webpage');
+  assert.equal(app.provider['@id'], 'https://ii-wa.com/#organization');
+  assert.equal(faq.isPartOf['@id'], 'https://invoice.ii-wa.com/#webpage');
+
+  const questions = faq.mainEntity.map((item) => item.name);
+  assert.ok(questions.includes('含稅總計怎麼反推未稅銷售額與營業稅？'));
+  assert.ok(questions.includes('這是正式發票嗎？可以列印嗎？'));
+  for (const question of questions) {
+    assert.match(html, new RegExp(`<summary>${question.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}<\/summary>`));
+  }
 
   const refs = collectIds(data);
   assert.ok(refs.has('https://invoice.ii-wa.com/#website'));
   assert.ok(refs.has('https://invoice.ii-wa.com/#webpage'));
   assert.ok(refs.has('https://invoice.ii-wa.com/#app'));
+  assert.ok(refs.has('https://ii-wa.com/#organization'));
 
   const serialized = JSON.stringify(data);
   assert.doesNotMatch(serialized, /aggregateRating/);
@@ -133,10 +152,27 @@ test('可見內文含稅額關鍵字，且核心公式不只藏在關閉的 FAQ'
   assert.ok(openFormula || rulesFormula, 'formula should stay visible outside closed details');
 });
 
-test('robots.txt 允許收錄並指向 sitemap', () => {
+test('robots.txt 允許收錄、AI 爬蟲與 llms.txt', () => {
   assert.match(robots, /User-agent:\s*\*/);
   assert.match(robots, /Allow:\s*\//);
   assert.match(robots, /Sitemap:\s*https:\/\/invoice\.ii-wa\.com\/sitemap\.xml/);
+  assert.match(robots, /https:\/\/invoice\.ii-wa\.com\/llms\.txt/);
+  assert.match(robots, /User-agent:\s*GPTBot/);
+  assert.match(robots, /User-agent:\s*OAI-SearchBot/);
+  assert.match(robots, /User-agent:\s*ClaudeBot/);
+});
+
+test('llms.txt 含正式網址、公式與非正式限制', () => {
+  assert.match(llms, /https:\/\/invoice\.ii-wa\.com\//);
+  assert.match(llms, /非正式/);
+  assert.match(llms, /(?:×\s*)?5\s*÷\s*105/);
+  assert.match(llms, /一蛙有限公司/);
+});
+
+test('Pages 將 /index.html 導向首頁，未知路徑 404 不索引', () => {
+  assert.match(redirects, /\/index\.html\s+\/\s+301/);
+  assert.match(notFound, /name="robots" content="noindex"/);
+  assert.doesNotMatch(notFound, /http-equiv="refresh"/i);
 });
 
 test('sitemap 只列正式首頁，不含 priority／changefreq／lastmod', () => {
