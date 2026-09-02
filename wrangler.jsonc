@@ -1,6 +1,9 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "invoice-ii-wa",
-  "pages_build_output_dir": "./dist",
+  "name": "invoice-tax-calculator",
   "compatibility_date": "2026-09-02",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+  },
 }

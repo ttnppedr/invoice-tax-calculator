@@ -169,7 +169,7 @@ test('llms.txt 含正式網址、公式與非正式限制', () => {
   assert.match(llms, /一蛙有限公司/);
 });
 
-test('Pages 將 /index.html 導向首頁，未知路徑 404 不索引', () => {
+test('部署將 /index.html 導向首頁，未知路徑 404 不索引', () => {
   assert.match(redirects, /\/index\.html\s+\/\s+301/);
   assert.match(notFound, /name="robots" content="noindex"/);
   assert.doesNotMatch(notFound, /http-equiv="refresh"/i);

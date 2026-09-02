@@ -71,10 +71,10 @@ SEO／AEO 檢查：
 npm test
 ```
 
-部署到 Cloudflare Pages：
+部署到 Cloudflare Workers（靜態資源）：
 
 ```bash
 npm run deploy
 ```
 
-`/` 應回傳 200，`/index.html` 由 `_redirects` 永久轉到 `/`，未知路徑由 `404.html` 回傳 404。HTTP 由 Cloudflare 轉 HTTPS。不要送出 `X-Robots-Tag: noindex`。上線後到 Google Search Console 驗證網站並提交 sitemap。不保證會出現搜尋複合結果或 AI Overview。
+Git 部署時組建命令用 `npm run build`，部署命令用 `npx wrangler deploy`。`wrangler.jsonc` 的專案名稱是 `invoice-tax-calculator`，輸出目錄是 `dist/`。未知路徑由 `404.html` 回 404，`/index.html` 由 `_redirects` 永久轉到 `/`。HTTP 由 Cloudflare 轉 HTTPS。不要送出 `X-Robots-Tag: noindex`。上線後到 Google Search Console 驗證網站並提交 sitemap。不保證會出現搜尋複合結果或 AI Overview。
