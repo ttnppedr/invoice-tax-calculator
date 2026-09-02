@@ -715,6 +715,9 @@ output.money[hidden] {
 
 dialog {
   width: min(32rem, calc(100% - 2rem));
+  max-width: calc(100vw - 2rem);
+  max-height: min(90dvh, calc(100% - 2rem));
+  overflow: auto;
   border: 1px solid var(--rule);
   padding: 1rem 1.1rem 1.15rem;
   background: #fff;
@@ -742,13 +745,20 @@ dialog::backdrop {
   align-items: center;
   gap: 0.35rem;
   margin: 0.35rem 0 0.6rem;
+  min-width: 0;
 }
 
 #lookup-query {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
   font: inherit;
   padding: 0.35rem 0.45rem;
   border: 1px solid var(--rule);
+}
+
+#btn-lookup-submit {
+  flex: 0 0 auto;
 }
 
 .lookup-status {
@@ -795,13 +805,24 @@ input:focus,
 
   dialog {
     width: min(32rem, calc(100% - 1rem));
+    max-width: calc(100vw - 1rem);
     max-height: 90dvh;
     padding-bottom: max(1.15rem, env(safe-area-inset-bottom));
+  }
+
+  .lookup-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   #lookup-query,
   #btn-lookup-submit {
     min-height: 2.25rem;
+    width: 100%;
+  }
+
+  .lookup-result {
+    overflow-x: auto;
   }
 
   .supporting-content {
