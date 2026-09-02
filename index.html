@@ -35,7 +35,16 @@
       content="手開發票金額試算：依 5% 營業稅從含稅總計或未稅銷售額互算，可選應稅、零稅率或免稅；查統編帶入買受人名稱，並產生新臺幣中文大寫。非正式發票，僅供填寫參考，不可列印憑證。"
     />
     <meta name="twitter:image" content="https://invoice.ii-wa.com/og-image.png" />
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEWW3JFVM2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'G-KEWW3JFVM2');
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -467,31 +476,5 @@
     </dialog>
 
     <script type="module" src="/src/main.js"></script>
-    <script>
-      window.addEventListener('load', function () {
-        setTimeout(function () {
-          var loaded = false;
-          function loadGA4() {
-            if (loaded) return;
-            loaded = true;
-            var script = document.createElement('script');
-            script.async = true;
-            script.src = 'https://www.googletagmanager.com/gtag/js?id=G-KEWW3JFVM2';
-            document.head.appendChild(script);
-            window.dataLayer = window.dataLayer || [];
-            function gtag() {
-              dataLayer.push(arguments);
-            }
-            window.gtag = gtag;
-            gtag('js', new Date());
-            gtag('config', 'G-KEWW3JFVM2');
-          }
-          ['click', 'scroll', 'touchstart', 'keydown'].forEach(function (event) {
-            document.addEventListener(event, loadGA4, { once: true, passive: true });
-          });
-          setTimeout(loadGA4, 10000);
-        }, 2000);
-      });
-    </script>
   </body>
 </html>
